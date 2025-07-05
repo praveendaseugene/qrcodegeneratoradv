@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: inline-block;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="py-10 px-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-3">QR Code Generator</h1>
+            <p class="text-gray-600 max-w-md mx-auto">Transform any text or URL into a scannable QR code instantly. Customize colors and download your QR.</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="md:flex">
+                <!-- Input Section -->
+                <div class="p-8 md:w-1/2">
+                    <form id="qrForm">
+                        <div class="mb-6">
+                            <label for="text-input" class="block text-sm font-medium text-gray-700 mb-2">Enter URL or Text</label>
+                            <div class="relative">
+                                <input type="text" id="text-input" placeholder="https://example.com or any text" 
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300" required>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">QR Code Colors</label>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1">
+                                    <label class="block text-xs text-gray-500 mb-1">Foreground</label>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="color" id="fg-color" value="#000000" class="opacity-0 absolute h-0 w-0">
+                                        <div id="fg-preview" class="color-preview bg-black"></div>
+                                        <input type="text" id="fg-hex" value="#000000" class="w-20 px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-xs text-gray-500 mb-1">Background</label>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="color" id="bg-color" value="#ffffff" class="opacity-0 absolute h-0 w-0">
+                                        <div id="bg-preview" class="color-preview bg-white border-gray-300"></div>
+                                        <input type="text" id="bg-hex" value="#ffffff" class="w-20 px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="size-input" class="block text-sm font-medium text-gray-700 mb-2">Size (px)</label>
+                            <input type="range" id="size-input" min="100" max="1000" value="200" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>100</span>
+                                <span>300</span>
+                                <span>500</span>
+                                <span>700</span>
+                                <span>1000</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span>Generate QR Code</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Output Section -->
+                <div class="bg-gray-50 p-8 md:w-1/2 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-gray-200">
+                    <div class="text-center mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">Your QR Code</h3>
+                        <p class="text-gray-500 text-sm">Scan me with your device</p>
+                    </div>
+
+                    <div id="qr-code" class="flex items-center justify-center mb-8 w-48 h-48 md:w-60 md:h-60 bg-white p-4 rounded-lg shadow-md">
+                        <p class="text-gray-400 text-center">Your QR code will appear here</p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+                        <button id="download-png" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span>PNG</span>
+                        </button>
+                        <button id="download-svg" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span>SVG</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="mt-16 grid md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Instant Generation</h3>
+                <p class="text-gray-600">Create QR codes in seconds with just one click. No waiting time required.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Customizable</h3>
+                <p class="text-gray-600">Personalize your QR code with different colors and sizes to match your brand.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">No Data Stored</h3>
+                <p class="text-gray-600">We don't store any of your information. All generation happens in your browser.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-16 text-center text-gray-500 text-sm">
+            <p>© 2023 QR Code Generator. All QR codes are generated client-side. No server required.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrForm = document.getElementById('qrForm');
+            const textInput = document.getElementById('text-input');
+            const fgColor = document.getElementById('fg-color');
+            const bgColor = document.getElementById('bg-color');
+            const fgPreview = document.getElementById('fg-preview');
+            const bgPreview = document.getElementById('bg-preview');
+            const fgHex = document.getElementById('fg-hex');
+            const bgHex = document.getElementById('bg-hex');
+            const sizeInput = document.getElementById('size-input');
+            const qrCodeDiv = document.getElementById('qr-code');
+            const downloadPngBtn = document.getElementById('download-png');
+            const downloadSvgBtn = document.getElementById('download-svg');
+            
+            let currentQR = null;
+            
+            // Update color previews and hex values
+            fgColor.addEventListener('input', function() {
+                fgPreview.style.backgroundColor = this.value;
+                fgHex.value = this.value.toUpperCase();
+            });
+            
+            bgColor.addEventListener('input', function() {
+                bgPreview.style.backgroundColor = this.value;
+                bgHex.value = this.value.toUpperCase();
+            });
+            
+            // Allow manual hex input
+            fgHex.addEventListener('input', function() {
+                if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+                    fgColor.value = this.value;
+                    fgPreview.style.backgroundColor = this.value;
+                }
+            });
+            
+            bgHex.addEventListener('input', function() {
+                if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+                    bgColor.value = this.value;
+                    bgPreview.style.backgroundColor = this.value;
+                }
+            });
+            
+            // Handle form submission
+            qrForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const text = textInput.value.trim();
+                if (!text) return;
+                
+                const options = {
+                    color: {
+                        dark: fgColor.value,
+                        light: bgColor.value
+                    },
+                    width: parseInt(sizeInput.value)
+                };
+                
+                // Clear previous QR
+                qrCodeDiv.innerHTML = '';
+                
+                // Add loading animation
+                const loader = document.createElement('div');
+                loader.className = 'animate-pulse flex items-center justify-center';
+                loader.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <svg class="animate-spin h-8 w-8 text-blue-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-gray-500">Generating QR code...</span>
+                    </div>
+                `;
+                qrCodeDiv.appendChild(loader);
+                
+                // Generate QR code
+                QRCode.toCanvas(text, options, function(err, canvas) {
+                    qrCodeDiv.innerHTML = '';
+                    if (err) {
+                        qrCodeDiv.innerHTML = '<p class="text-red-500 text-center">Error generating QR code. Please try again.</p>';
+                        console.error(err);
+                        return;
+                    }
+                    
+                    currentQR = { text, options, canvas };
+                    canvas.classList.add('mx-auto');
+                    qrCodeDiv.appendChild(canvas);
+                    
+                    // Enable download buttons
+                    downloadPngBtn.disabled = false;
+                    downloadSvgBtn.disabled = false;
+                    
+                    // Add pulse animation to download buttons
+                    downloadPngBtn.classList.add('pulse');
+                    downloadSvgBtn.classList.add('pulse');
+                    setTimeout(() => {
+                        downloadPngBtn.classList.remove('pulse');
+                        downloadSvgBtn.classList.remove('pulse');
+                    }, 3000);
+                });
+            });
+            
+            // Handle PNG download
+            downloadPngBtn.addEventListener('click', function() {
+                if (!currentQR) return;
+                
+                const canvas = currentQR.canvas;
+                const url = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `qr-code-${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+            
+            // Handle SVG download
+            downloadSvgBtn.addEventListener('click', function() {
+                if (!currentQR) return;
+                
+                QRCode.toString(currentQR.text, currentQR.options, function(err, svg) {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    
+                    const blob = new Blob([svg], { type: 'image/svg+xml' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `qr-code-${Date.now()}.svg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -8,964 +8,937 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-        }
-        .color-preview {
-            width: 34px; height: 34px; border-radius: 8px; display: inline-block;
-            cursor: pointer; border: 2px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: transform 0.15s ease;
-        }
-        .color-preview:hover { transform: scale(1.08); }
-        .visually-hidden {
-            position: absolute !important; width: 1px; height: 1px;
-            padding: 0; margin: -1px; overflow: hidden;
-            clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-        }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%); min-height: 100vh; }
+        .color-preview { width:34px;height:34px;border-radius:8px;display:inline-block;cursor:pointer;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.15);transition:transform .15s; }
+        .color-preview:hover { transform:scale(1.08); }
+        .color-preview.sm { width:28px;height:28px;border-radius:6px; }
+        .visually-hidden { position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
         @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-        .pulse { animation: pulse 1.5s infinite; }
-        #qr-code canvas, #qr-code img, #qr-code svg { max-width: 100%; height: auto; display: block; }
-        .preset-swatch {
-            width: 26px; height: 26px; border-radius: 6px;
-            border: 2px solid #e5e7eb; cursor: pointer;
-            transition: transform 0.15s, border-color 0.15s; padding: 0;
-        }
-        .preset-swatch:hover { transform: scale(1.12); border-color: #3b82f6; }
-        .frame-option, .design-option {
-            cursor: pointer; border: 2px solid #e5e7eb; border-radius: 10px;
-            padding: 6px; background: #fff; transition: all 0.2s ease;
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-        }
-        .frame-option:hover, .design-option:hover { border-color: #93c5fd; }
-        .frame-option.active, .design-option.active {
-            border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-        }
-        .frame-option .frame-thumb {
-            width: 54px; height: 54px; border-radius: 6px; background: #f9fafb;
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
-        .frame-option .frame-label { font-size: 10px; font-weight: 500; color: #4b5563; text-align: center; line-height: 1.1; }
-        .design-option svg { width: 32px; height: 32px; }
-        .design-option span { font-size: 10px; font-weight: 500; color: #4b5563; }
-        input[type="range"] {
-            -webkit-appearance: none; appearance: none;
-            height: 8px; border-radius: 4px; background: #e5e7eb; outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 20px; height: 20px; border-radius: 50%; background: #3b82f6;
-            cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 20px; height: 20px; border-radius: 50%; background: #3b82f6;
-            cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-        .collapsible-content.open { max-height: 2000px; }
-        .collapsible-toggle svg { transition: transform 0.3s ease; }
-        .collapsible-toggle.open svg { transform: rotate(180deg); }
-        #toast {
-            position: fixed; bottom: 24px; left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #1f2937; color: #fff; padding: 12px 24px;
-            border-radius: 10px; font-size: 14px; font-weight: 500;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0;
-            transition: all 0.3s ease; z-index: 1000; pointer-events: none;
-        }
-        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        :focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
-        .logo-dropzone {
-            border: 2px dashed #cbd5e1; border-radius: 10px; padding: 16px;
-            text-align: center; transition: all 0.2s ease; cursor: pointer; background: #f8fafc;
-        }
-        .logo-dropzone:hover, .logo-dropzone.dragover { border-color: #3b82f6; background: #eff6ff; }
-        .logo-preview-box {
-            display: flex; align-items: center; gap: 12px; padding: 10px;
-            background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
-        }
-        .logo-preview-box img {
-            width: 44px; height: 44px; object-fit: contain;
-            border-radius: 6px; background: #fff; padding: 2px;
-        }
+        .pulse { animation:pulse 1.5s infinite; }
+        #qr-code canvas { max-width:100%; height:auto; display:block; }
+        .preset-swatch { width:26px;height:26px;border-radius:6px;border:2px solid #e5e7eb;cursor:pointer;transition:transform .15s,border-color .15s;padding:0; }
+        .preset-swatch:hover { transform:scale(1.12);border-color:#3b82f6; }
+        .frame-option,.design-option { cursor:pointer;border:2px solid #e5e7eb;border-radius:10px;padding:6px;background:#fff;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px; }
+        .frame-option:hover,.design-option:hover { border-color:#93c5fd; }
+        .frame-option.active,.design-option.active { border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.2); }
+        .frame-option .frame-thumb { width:54px;height:54px;border-radius:6px;background:#f9fafb;display:flex;align-items:center;justify-content:center;overflow:hidden; }
+        .frame-option .frame-label { font-size:10px;font-weight:500;color:#4b5563;text-align:center;line-height:1.1; }
+        .design-option svg { width:32px;height:32px; }
+        .design-option span { font-size:10px;font-weight:500;color:#4b5563; }
+        input[type=range] { -webkit-appearance:none;appearance:none;height:8px;border-radius:4px;background:#e5e7eb;outline:none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2); }
+        input[type=range]::-moz-range-thumb { width:20px;height:20px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2); }
+        .collapsible-content { max-height:0;overflow:hidden;transition:max-height .3s; }
+        .collapsible-content.open { max-height:3000px; }
+        .collapsible-toggle svg { transition:transform .3s; }
+        .collapsible-toggle.open svg { transform:rotate(180deg); }
+        #toast { position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#1f2937;color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:0 10px 25px rgba(0,0,0,.2);opacity:0;transition:all .3s;z-index:1000;pointer-events:none;max-width:90vw;text-align:center; }
+        #toast.show { transform:translateX(-50%) translateY(0);opacity:1; }
+        :focus-visible { outline:3px solid #3b82f6;outline-offset:2px; }
+        .logo-dropzone { border:2px dashed #cbd5e1;border-radius:10px;padding:16px;text-align:center;transition:all .2s;cursor:pointer;background:#f8fafc; }
+        .logo-dropzone:hover,.logo-dropzone.dragover { border-color:#3b82f6;background:#eff6ff; }
+        .logo-preview-box { display:flex;align-items:center;gap:12px;padding:10px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0; }
+        .logo-preview-box img { width:44px;height:44px;object-fit:contain;border-radius:6px;background:#fff;padding:2px; }
+        .fallback-link { position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#3b82f6;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:1001;box-shadow:0 4px 12px rgba(0,0,0,.2); }
+        .fallback-link a { color:#fff;text-decoration:underline;font-weight:600; }
     </style>
 </head>
 <body class="py-10 px-4">
-    <div class="max-w-6xl mx-auto">
-        <header class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-3">QR Code Generator</h1>
-            <p class="text-gray-600 max-w-md mx-auto">Transform any text or URL into a scannable QR code instantly. Customize colors, design, frames, add a logo, and download.</p>
-        </header>
+<div class="max-w-6xl mx-auto">
+    <header class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-3">QR Code Generator</h1>
+        <p class="text-gray-600 max-w-md mx-auto">Transform any text or URL into a scannable QR code instantly.</p>
+    </header>
 
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="lg:flex">
-                <!-- Input -->
-                <div class="p-6 sm:p-8 lg:w-1/2">
-                    <form id="qrForm">
-                        <div class="mb-6">
-                            <label for="text-input" class="block text-sm font-medium text-gray-700 mb-2">Enter URL or Text</label>
-                            <div class="relative">
-                                <input type="text" id="text-input" placeholder="https://example.com or any text"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300" required>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                    </svg>
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="lg:flex">
+            <div class="p-6 sm:p-8 lg:w-1/2">
+                <form id="qrForm">
+                    <div class="mb-6">
+                        <label for="text-input" class="block text-sm font-medium text-gray-700 mb-2">Enter URL or Text</label>
+                        <input type="text" id="text-input" placeholder="https://example.com or any text"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">QR Code Colors</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Foreground</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" id="fg-color" value="#000000" class="visually-hidden">
+                                    <button type="button" id="fg-preview" class="color-preview bg-black" aria-label="Pick foreground color"></button>
+                                    <input type="text" id="fg-hex" value="#000000" class="w-20 px-2 py-1.5 text-sm rounded border border-gray-300 font-mono">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Background</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" id="bg-color" value="#ffffff" class="visually-hidden">
+                                    <button type="button" id="bg-preview" class="color-preview bg-white" aria-label="Pick background color"></button>
+                                    <input type="text" id="bg-hex" value="#FFFFFF" class="w-20 px-2 py-1.5 text-sm rounded border border-gray-300 font-mono">
                                 </div>
                             </div>
                         </div>
-
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">QR Code Colors</label>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="fg-color" class="block text-xs text-gray-500 mb-1">Foreground</label>
-                                    <div class="flex items-center space-x-2">
-                                        <input type="color" id="fg-color" value="#000000" class="visually-hidden">
-                                        <button type="button" id="fg-preview" class="color-preview bg-black" aria-label="Pick foreground color"></button>
-                                        <input type="text" id="fg-hex" value="#000000" class="w-20 px-2 py-1.5 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label for="bg-color" class="block text-xs text-gray-500 mb-1">Background</label>
-                                    <div class="flex items-center space-x-2">
-                                        <input type="color" id="bg-color" value="#ffffff" class="visually-hidden">
-                                        <button type="button" id="bg-preview" class="color-preview bg-white" aria-label="Pick background color"></button>
-                                        <input type="text" id="bg-hex" value="#FFFFFF" class="w-20 px-2 py-1.5 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <label class="block text-xs text-gray-500 mb-1.5">Quick themes</label>
-                                <div class="flex flex-wrap gap-2" id="preset-themes"></div>
-                            </div>
+                        <div class="mt-3">
+                            <label class="block text-xs text-gray-500 mb-1.5">Quick themes</label>
+                            <div class="flex flex-wrap gap-2" id="preset-themes"></div>
                         </div>
+                    </div>
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Design Style</label>
-                            <div class="grid grid-cols-4 gap-2" id="design-options"></div>
-                        </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Design Style</label>
+                        <div class="grid grid-cols-4 gap-2" id="design-options"></div>
+                    </div>
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Frame (optional)</label>
-                            <div class="grid grid-cols-4 gap-2" id="frame-options"></div>
-                        </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Frame (optional)</label>
+                        <div class="grid grid-cols-4 gap-2" id="frame-options"></div>
+                    </div>
 
-                        <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
-                            <button type="button" id="extras-toggle" class="collapsible-toggle w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 transition text-sm font-medium text-gray-700">
-                                <span class="flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    Logo, Title &amp; Description
-                                </span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div id="extras-content" class="collapsible-content">
-                                <div class="p-4 space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo (optional)</label>
-                                        <div id="logo-empty">
-                                            <div id="logo-dropzone" class="logo-dropzone" role="button" tabindex="0" aria-label="Upload logo image">
-                                                <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="visually-hidden">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.9A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                                </svg>
-                                                <p class="text-xs text-gray-600 font-medium">Click or drop image here</p>
-                                                <p class="text-[10px] text-gray-400 mt-0.5">PNG, JPG, SVG, WebP · max 4 MB</p>
-                                            </div>
-                                        </div>
-                                        <div id="logo-preview" class="logo-preview-box hidden">
-                                            <img id="logo-img" alt="Logo preview">
-                                            <div class="flex-1 min-w-0">
-                                                <p id="logo-name" class="text-xs font-medium text-gray-700 truncate">logo.png</p>
-                                                <p id="logo-size-label" class="text-[10px] text-gray-400">-</p>
-                                            </div>
-                                            <button type="button" id="logo-remove" class="text-red-500 hover:text-red-700 p-1" aria-label="Remove logo">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        <div class="mt-2">
-                                            <label for="logo-size-input" class="block text-xs text-gray-500 mb-1">
-                                                Logo size: <span id="logo-size-value" class="font-semibold text-blue-600">20</span>% of QR
-                                            </label>
-                                            <input type="range" id="logo-size-input" min="12" max="25" step="1" value="20" class="w-full">
-                                            <p class="text-[10px] text-gray-400 mt-1">Capped at 25% to keep the code scannable. Error correction auto-set to High when a logo is used.</p>
-                                        </div>
-                                        <div class="mt-2 flex items-center gap-2">
-                                            <input type="checkbox" id="logo-bg" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                            <label for="logo-bg" class="text-xs text-gray-600">Add padding behind logo (recommended)</label>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label for="title-input" class="block text-sm font-medium text-gray-700 mb-1">Title (optional)</label>
-                                        <input type="text" id="title-input" maxlength="40" placeholder="My Awesome QR"
-                                            class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    </div>
-
-                                    <div>
-                                        <label for="desc-input" class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
-                                        <textarea id="desc-input" rows="2" maxlength="120" placeholder="Scan to visit our website"
-                                            class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
-                            <button type="button" id="advanced-toggle" class="collapsible-toggle w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
-                                <span>Advanced Options</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div id="advanced-content" class="collapsible-content">
-                                <div class="p-4 space-y-4">
-                                    <div>
-                                        <label for="size-input" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Size: <span id="size-value" class="font-semibold text-blue-600">400</span>px
-                                        </label>
-                                        <input type="range" id="size-input" min="200" max="1000" step="50" value="400" class="w-full">
-                                        <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                            <span>200</span><span>400</span><span>600</span><span>800</span><span>1000</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label for="margin-input" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Quiet Zone (margin): <span id="margin-value" class="font-semibold text-blue-600">4</span>
-                                        </label>
-                                        <input type="range" id="margin-input" min="1" max="10" step="1" value="4" class="w-full">
-                                    </div>
-                                    <p class="text-[11px] text-gray-500 leading-relaxed">
-                                        <strong>Error correction is automatic:</strong> High (30%) when a logo is present, Medium (15%) otherwise. This gives the best scan reliability for each case without exposing you to a setting that's easy to get wrong.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            <span>Generate QR Code</span>
+                    <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
+                        <button type="button" id="extras-toggle" class="collapsible-toggle w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 text-sm font-medium text-gray-700">
+                            <span>Logo, Title &amp; Description</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                    </form>
+                        <div id="extras-content" class="collapsible-content">
+                            <div class="p-4 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Logo (optional)</label>
+                                    <div id="logo-empty">
+                                        <div id="logo-dropzone" class="logo-dropzone" role="button" tabindex="0">
+                                            <input type="file" id="logo-input" accept="image/*" class="visually-hidden">
+                                            <p class="text-xs text-gray-600 font-medium">Click or drop image here</p>
+                                            <p class="text-[10px] text-gray-400 mt-0.5">PNG, JPG, SVG, WebP · max 4 MB</p>
+                                        </div>
+                                    </div>
+                                    <div id="logo-preview" class="logo-preview-box hidden">
+                                        <img id="logo-img" alt="Logo preview">
+                                        <div class="flex-1 min-w-0">
+                                            <p id="logo-name" class="text-xs font-medium text-gray-700 truncate">logo.png</p>
+                                            <p id="logo-size-label" class="text-[10px] text-gray-400">-</p>
+                                        </div>
+                                        <button type="button" id="logo-remove" class="text-red-500 hover:text-red-700 p-1">✕</button>
+                                    </div>
+                                    <div class="mt-2">
+                                        <label class="block text-xs text-gray-500 mb-1">Logo size: <span id="logo-size-value" class="font-semibold text-blue-600">20</span>%</label>
+                                        <input type="range" id="logo-size-input" min="12" max="25" step="1" value="20" class="w-full">
+                                    </div>
+                                    <div class="mt-2 flex items-center gap-2">
+                                        <input type="checkbox" id="logo-bg" checked class="rounded border-gray-300 text-blue-600">
+                                        <label for="logo-bg" class="text-xs text-gray-600">Add padding behind logo</label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="title-input" class="block text-sm font-medium text-gray-700 mb-1">Title (optional)</label>
+                                    <input type="text" id="title-input" maxlength="40" placeholder="My Awesome QR"
+                                        class="w-full px-3 py-2 text-sm rounded border border-gray-300">
+                                    <div class="grid grid-cols-2 gap-3 mt-2">
+                                        <div>
+                                            <label class="block text-xs text-gray-500 mb-1">Title color</label>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="color" id="title-color" value="#000000" class="visually-hidden">
+                                                <button type="button" id="title-color-preview" class="color-preview sm bg-black"></button>
+                                                <input type="text" id="title-color-hex" value="#000000" class="w-20 px-2 py-1 text-xs rounded border border-gray-300 font-mono">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-500 mb-1">Title size: <span id="title-size-value" class="font-semibold text-blue-600">6.0</span>%</label>
+                                            <input type="range" id="title-size-input" min="30" max="120" step="5" value="60" class="w-full">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="desc-input" class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                                    <textarea id="desc-input" rows="2" maxlength="120" placeholder="Scan to visit our website"
+                                        class="w-full px-3 py-2 text-sm rounded border border-gray-300 resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
+                        <button type="button" id="advanced-toggle" class="collapsible-toggle w-full flex items-center justify-between px-4 py-3 bg-gray-50 text-sm font-medium text-gray-700">
+                            <span>Advanced Options</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="advanced-content" class="collapsible-content">
+                            <div class="p-4 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Size: <span id="size-value" class="font-semibold text-blue-600">400</span>px</label>
+                                    <input type="range" id="size-input" min="200" max="1000" step="50" value="400" class="w-full">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Quiet Zone: <span id="margin-value" class="font-semibold text-blue-600">4</span></label>
+                                    <input type="range" id="margin-input" min="1" max="10" step="1" value="4" class="w-full">
+                                </div>
+                                <p class="text-[11px] text-gray-500">Error correction auto: High (30%) with logo, Medium (15%) without.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
+                        <span>Generate QR Code</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-gray-50 p-6 sm:p-8 lg:w-1/2 flex flex-col items-center justify-center border-t lg:border-t-0 lg:border-l border-gray-200">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Your QR Code</h3>
+                    <p class="text-gray-500 text-sm">Scan me with your device</p>
                 </div>
-
-                <!-- Output -->
-                <div class="bg-gray-50 p-6 sm:p-8 lg:w-1/2 flex flex-col items-center justify-center border-t lg:border-t-0 lg:border-l border-gray-200">
-                    <div class="text-center mb-6">
-                        <h3 class="text-xl font-semibold text-gray-800">Your QR Code</h3>
-                        <p class="text-gray-500 text-sm">Scan me with your device</p>
-                    </div>
-                    <div id="qr-code" role="img" aria-label="Generated QR code will appear here"
-                         class="flex items-center justify-center mb-8 w-full max-w-[340px] min-h-[220px] bg-white p-4 rounded-lg shadow-md overflow-hidden">
-                        <p class="text-gray-400 text-center text-sm">Your QR code will appear here</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
-                        <button id="download-png" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <span>PNG</span>
-                        </button>
-                        <button id="download-jpeg" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <span>JPEG</span>
-                        </button>
-                        <button id="download-svg" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <span>SVG</span>
-                        </button>
-                        <button id="copy-image" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <span>Copy</span>
-                        </button>
-                    </div>
+                <div id="qr-code" class="flex items-center justify-center mb-8 w-full max-w-[340px] min-h-[220px] bg-white p-4 rounded-lg shadow-md overflow-hidden">
+                    <p class="text-gray-400 text-center text-sm">Your QR code will appear here</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
+                    <button id="download-png" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>PNG</span>
+                    </button>
+                    <button id="download-jpeg" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>JPEG</span>
+                    </button>
+                    <button id="download-svg" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>SVG</span>
+                    </button>
+                    <button id="copy-image" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        <span>Copy</span>
+                    </button>
                 </div>
             </div>
         </div>
-
-        <footer class="mt-16 text-center text-gray-500 text-sm">
-            <p>© 2024 QR Code Generator. All QR codes are generated client-side. No server required.</p>
-        </footer>
     </div>
 
-    <div id="toast" role="status" aria-live="polite"></div>
+    <footer class="mt-16 text-center text-gray-500 text-sm">
+        <p>© 2024 QR Code Generator. Client-side only.</p>
+    </footer>
+</div>
 
-    <script>
-    (function () {
-        'use strict';
+<div id="toast" role="status" aria-live="polite"></div>
 
-        const state = {
-            design: 'square',
-            frame: 'none',
-            currentCanvas: null,
-            generationId: 0,
-            logoImage: null,
-            logoName: ''
-        };
+<script>
+(function () {
+    'use strict';
 
-        const $ = (id) => document.getElementById(id);
-        const qrForm = $('qrForm');
-        const textInput = $('text-input');
-        const fgColor = $('fg-color');
-        const bgColor = $('bg-color');
-        const fgPreview = $('fg-preview');
-        const bgPreview = $('bg-preview');
-        const fgHex = $('fg-hex');
-        const bgHex = $('bg-hex');
-        const sizeInput = $('size-input');
-        const sizeValue = $('size-value');
-        const marginInput = $('margin-input');
-        const marginValue = $('margin-value');
-        const qrCodeDiv = $('qr-code');
-        const downloadPngBtn = $('download-png');
-        const downloadJpegBtn = $('download-jpeg');
-        const downloadSvgBtn = $('download-svg');
-        const copyImageBtn = $('copy-image');
-        const presetContainer = $('preset-themes');
-        const designContainer = $('design-options');
-        const frameContainer = $('frame-options');
-        const advancedToggle = $('advanced-toggle');
-        const advancedContent = $('advanced-content');
-        const extrasToggle = $('extras-toggle');
-        const extrasContent = $('extras-content');
-        const toastEl = $('toast');
+    const state = { design: 'square', frame: 'none', currentCanvas: null, logoImg: null, genId: 0 };
 
-        const logoDropzone = $('logo-dropzone');
-        const logoInput = $('logo-input');
-        const logoEmpty = $('logo-empty');
-        const logoPreviewBox = $('logo-preview');
-        const logoImg = $('logo-img');
-        const logoNameEl = $('logo-name');
-        const logoSizeLabel = $('logo-size-label');
-        const logoRemoveBtn = $('logo-remove');
-        const logoSizeInput = $('logo-size-input');
-        const logoSizeValue = $('logo-size-value');
-        const logoBgCheckbox = $('logo-bg');
+    const $ = id => document.getElementById(id);
+    const textInput    = $('text-input');
+    const fgColor      = $('fg-color');
+    const bgColor      = $('bg-color');
+    const fgPreview    = $('fg-preview');
+    const bgPreview    = $('bg-preview');
+    const fgHex        = $('fg-hex');
+    const bgHex        = $('bg-hex');
+    const sizeInput    = $('size-input');
+    const sizeValue    = $('size-value');
+    const marginInput  = $('margin-input');
+    const marginValue  = $('margin-value');
+    const qrCodeDiv    = $('qr-code');
+    const btnPng       = $('download-png');
+    const btnJpeg      = $('download-jpeg');
+    const btnSvg       = $('download-svg');
+    const btnCopy      = $('copy-image');
+    const presetBox    = $('preset-themes');
+    const designBox    = $('design-options');
+    const frameBox     = $('frame-options');
+    const advToggle    = $('advanced-toggle');
+    const advContent   = $('advanced-content');
+    const extToggle    = $('extras-toggle');
+    const extContent   = $('extras-content');
+    const toastEl      = $('toast');
+    const qrForm       = $('qrForm');
 
-        const titleInput = $('title-input');
-        const descInput = $('desc-input');
+    const logoDropzone = $('logo-dropzone');
+    const logoInput    = $('logo-input');
+    const logoEmpty    = $('logo-empty');
+    const logoPreview  = $('logo-preview');
+    const logoImgEl    = $('logo-img');
+    const logoNameEl   = $('logo-name');
+    const logoSizeLbl  = $('logo-size-label');
+    const logoRemoveBtn= $('logo-remove');
+    const logoSizeIn   = $('logo-size-input');
+    const logoSizeVal  = $('logo-size-value');
+    const logoBgCb     = $('logo-bg');
 
-        const toast = (msg) => {
-            toastEl.textContent = msg;
-            toastEl.classList.add('show');
-            clearTimeout(toast._t);
-            toast._t = setTimeout(() => toastEl.classList.remove('show'), 2200);
-        };
+    const titleInput   = $('title-input');
+    const descInput    = $('desc-input');
+    const titleColor   = $('title-color');
+    const titleColorPv = $('title-color-preview');
+    const titleColorHex= $('title-color-hex');
+    const titleSizeIn  = $('title-size-input');
+    const titleSizeVal = $('title-size-value');
 
-        const normalizeHex = (v) => {
-            v = (v || '').trim();
-            if (/^#[0-9a-f]{3}$/i.test(v)) return '#' + v.slice(1).split('').map(c => c + c).join('').toLowerCase();
-            if (/^[0-9a-f]{6}$/i.test(v)) return '#' + v.toLowerCase();
-            if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase();
-            return null;
-        };
+    function toast(msg, ms) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => toastEl.classList.remove('show'), ms || 2500);
+    }
 
-        const debounce = (fn, ms = 400) => {
-            let t;
-            return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); };
-        };
+    function hexNorm(v) {
+        v = (v || '').trim();
+        if (/^#[0-9a-f]{3}$/i.test(v)) return '#' + v.slice(1).split('').map(c => c + c).join('').toLowerCase();
+        if (/^[0-9a-f]{6}$/i.test(v)) return '#' + v.toLowerCase();
+        if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase();
+        return null;
+    }
 
-        const formatBytes = (b) => {
-            if (b < 1024) return b + ' B';
-            if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
-            return (b / (1024 * 1024)).toFixed(2) + ' MB';
-        };
+    function debounce(fn, ms) {
+        let t;
+        return function (...a) { clearTimeout(t); t = setTimeout(() => fn.apply(null, a), ms); };
+    }
 
-        // ---------- Themes / Designs / Frames ----------
-        const PRESETS = [
-            { name: 'Classic', fg: '#000000', bg: '#ffffff' },
-            { name: 'Ocean', fg: '#0f4c81', bg: '#e6f2ff' },
-            { name: 'Forest', fg: '#14532d', bg: '#dcfce7' },
-            { name: 'Sunset', fg: '#7c2d12', bg: '#fed7aa' },
-            { name: 'Berry', fg: '#6b21a8', bg: '#f3e8ff' },
-            { name: 'Mono', fg: '#1f2937', bg: '#f3f4f6' },
-            { name: 'Crimson', fg: '#991b1b', bg: '#fee2e2' },
-            { name: 'Midnight', fg: '#e0e7ff', bg: '#1e1b4b' }
-        ];
-        PRESETS.forEach(p => {
-            const btn = document.createElement('button');
-            btn.type = 'button'; btn.className = 'preset-swatch'; btn.title = p.name;
-            btn.setAttribute('aria-label', 'Apply theme ' + p.name);
-            btn.style.background = `linear-gradient(135deg, ${p.fg} 50%, ${p.bg} 50%)`;
-            btn.addEventListener('click', () => { setFgColor(p.fg); setBgColor(p.bg); generate(true); });
-            presetContainer.appendChild(btn);
-        });
+    function fmtBytes(b) {
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+        return (b / 1048576).toFixed(2) + ' MB';
+    }
 
-        const DESIGNS = [
-            { id: 'square', label: 'Square', svg: '<svg viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="4" width="10" height="10" rx="1"/><rect x="18" y="4" width="10" height="10" rx="1"/><rect x="4" y="18" width="10" height="10" rx="1"/><rect x="20" y="20" width="6" height="6"/></svg>' },
-            { id: 'rounded', label: 'Rounded', svg: '<svg viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="4" width="10" height="10" rx="3"/><rect x="18" y="4" width="10" height="10" rx="3"/><rect x="4" y="18" width="10" height="10" rx="3"/><rect x="20" y="20" width="6" height="6" rx="2"/></svg>' },
-            { id: 'dots', label: 'Dots', svg: '<svg viewBox="0 0 32 32" fill="currentColor"><circle cx="9" cy="9" r="5"/><circle cx="23" cy="9" r="5"/><circle cx="9" cy="23" r="5"/><circle cx="23" cy="23" r="3"/></svg>' },
-            { id: 'smooth', label: 'Smooth', svg: '<svg viewBox="0 0 32 32" fill="currentColor"><path d="M4 9a5 5 0 015-5h0a5 5 0 015 5v0a5 5 0 01-5 5h0a5 5 0 01-5-5z"/><circle cx="23" cy="9" r="5"/><circle cx="9" cy="23" r="5"/><circle cx="23" cy="23" r="3"/></svg>' }
-        ];
-        DESIGNS.forEach(d => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'design-option' + (d.id === state.design ? ' active' : '');
-            btn.dataset.design = d.id;
-            btn.innerHTML = `<span style="color: currentColor">${d.svg}</span><span>${d.label}</span>`;
-            btn.style.color = '#374151';
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.design-option').forEach(x => x.classList.remove('active'));
-                btn.classList.add('active');
-                state.design = d.id;
-                generate(true);
-            });
-            designContainer.appendChild(btn);
-        });
+    // ---------- Presets ----------
+    [
+        ['Classic','#000000','#ffffff'],['Ocean','#0f4c81','#e6f2ff'],
+        ['Forest','#14532d','#dcfce7'],['Sunset','#7c2d12','#fed7aa'],
+        ['Berry','#6b21a8','#f3e8ff'],['Mono','#1f2937','#f3f4f6'],
+        ['Crimson','#991b1b','#fee2e2'],['Midnight','#e0e7ff','#1e1b4b']
+    ].forEach(([name, fg, bg]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'preset-swatch';
+        b.title = name;
+        b.style.background = `linear-gradient(135deg, ${fg} 50%, ${bg} 50%)`;
+        b.onclick = () => { setFg(fg); setBg(bg); generate(true); };
+        presetBox.appendChild(b);
+    });
 
-        const FRAMES = [
-            { id: 'none', label: 'None' },
-            { id: 'simple', label: 'Simple' },
-            { id: 'rounded', label: 'Rounded' },
-            { id: 'label', label: 'Label' },
-            { id: 'banner', label: 'Banner' },
-            { id: 'speech', label: 'Speech' },
-            { id: 'shadow', label: 'Shadow' },
-            { id: 'double', label: 'Double' }
-        ];
-        FRAMES.forEach(f => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'frame-option' + (f.id === state.frame ? ' active' : '');
-            btn.dataset.frame = f.id;
-            btn.innerHTML = `<div class="frame-thumb">${frameThumb(f.id)}</div><span class="frame-label">${f.label}</span>`;
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.frame-option').forEach(x => x.classList.remove('active'));
-                btn.classList.add('active');
-                state.frame = f.id;
-                generate(true);
-            });
-            frameContainer.appendChild(btn);
-        });
-
-        function frameThumb(id) {
-            const stroke = '#94a3b8', fill = '#e2e8f0';
-            switch (id) {
-                case 'none': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="12" y="12" width="16" height="16" fill="${fill}"/></svg>`;
-                case 'simple': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="3" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="13" y="13" width="14" height="14" fill="${fill}"/></svg>`;
-                case 'rounded': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="9" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="13" y="13" width="14" height="14" rx="4" fill="${fill}"/></svg>`;
-                case 'label': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="24" rx="3" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="12" y="33" width="16" height="5" rx="2" fill="${stroke}"/><rect x="13" y="12" width="14" height="12" fill="${fill}"/></svg>`;
-                case 'banner': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="10" width="28" height="24" rx="2" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="6" y="3" width="28" height="7" fill="${stroke}"/><rect x="13" y="16" width="14" height="12" fill="${fill}"/></svg>`;
-                case 'speech': return `<svg width="40" height="40" viewBox="0 0 40 40"><path d="M8 8h24a3 3 0 013 3v14a3 3 0 01-3 3H20l-6 5v-5H8a3 3 0 01-3-3V11a3 3 0 013-3z" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="13" y="13" width="14" height="10" fill="${fill}"/></svg>`;
-                case 'shadow': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="9" y="9" width="26" height="26" rx="3" fill="${stroke}" opacity="0.4"/><rect x="6" y="6" width="26" height="26" rx="3" fill="#fff" stroke="${stroke}" stroke-width="2"/><rect x="12" y="12" width="14" height="14" fill="${fill}"/></svg>`;
-                case 'double': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="3" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="8" y="8" width="24" height="24" rx="2" fill="none" stroke="${stroke}" stroke-width="1.5"/><rect x="13" y="13" width="14" height="14" fill="${fill}"/></svg>`;
-                default: return '';
-            }
-        }
-
-        advancedToggle.addEventListener('click', () => {
-            advancedToggle.classList.toggle('open');
-            advancedContent.classList.toggle('open');
-        });
-        extrasToggle.addEventListener('click', () => {
-            extrasToggle.classList.toggle('open');
-            extrasContent.classList.toggle('open');
-        });
-
-        // ---------- Color ----------
-        function setFgColor(v) {
-            const hex = normalizeHex(v); if (!hex) return;
-            fgColor.value = hex; fgPreview.style.backgroundColor = hex; fgHex.value = hex.toUpperCase();
-        }
-        function setBgColor(v) {
-            const hex = normalizeHex(v); if (!hex) return;
-            bgColor.value = hex; bgPreview.style.backgroundColor = hex; bgHex.value = hex.toUpperCase();
-        }
-        fgPreview.addEventListener('click', () => fgColor.click());
-        bgPreview.addEventListener('click', () => bgColor.click());
-        fgColor.addEventListener('input', () => { setFgColor(fgColor.value); generate(true); });
-        bgColor.addEventListener('input', () => { setBgColor(bgColor.value); generate(true); });
-        fgHex.addEventListener('input', () => {
-            const hex = normalizeHex(fgHex.value);
-            if (hex) { fgColor.value = hex; fgPreview.style.backgroundColor = hex; generate(true); }
-        });
-        bgHex.addEventListener('input', () => {
-            const hex = normalizeHex(bgHex.value);
-            if (hex) { bgColor.value = hex; bgPreview.style.backgroundColor = hex; generate(true); }
-        });
-
-        sizeInput.addEventListener('input', () => { sizeValue.textContent = sizeInput.value; generate(true); });
-        marginInput.addEventListener('input', () => { marginValue.textContent = marginInput.value; generate(true); });
-        logoSizeInput.addEventListener('input', () => { logoSizeValue.textContent = logoSizeInput.value; generate(true); });
-        logoBgCheckbox.addEventListener('change', () => generate(true));
-
-        titleInput.addEventListener('input', debounce(() => generate(true), 350));
-        descInput.addEventListener('input', debounce(() => generate(true), 350));
-
-        // ---------- Logo ----------
-        logoDropzone.addEventListener('click', () => logoInput.click());
-        logoDropzone.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); logoInput.click(); }
-        });
-        ['dragenter', 'dragover'].forEach(evt => logoDropzone.addEventListener(evt, (e) => {
-            e.preventDefault(); logoDropzone.classList.add('dragover');
-        }));
-        ['dragleave', 'drop'].forEach(evt => logoDropzone.addEventListener(evt, (e) => {
-            e.preventDefault(); logoDropzone.classList.remove('dragover');
-        }));
-        logoDropzone.addEventListener('drop', (e) => {
-            const file = e.dataTransfer.files && e.dataTransfer.files[0];
-            if (file) handleLogoFile(file);
-        });
-        logoInput.addEventListener('change', (e) => {
-            const file = e.target.files && e.target.files[0];
-            if (file) handleLogoFile(file);
-        });
-        logoRemoveBtn.addEventListener('click', () => {
-            state.logoImage = null;
-            state.logoName = '';
-            logoInput.value = '';
-            logoEmpty.classList.remove('hidden');
-            logoPreviewBox.classList.add('hidden');
+    // ---------- Designs ----------
+    const DESIGNS = [
+        { id:'square',  label:'Square',  svg:'<svg viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="4" width="10" height="10"/><rect x="18" y="4" width="10" height="10"/><rect x="4" y="18" width="10" height="10"/><rect x="20" y="20" width="6" height="6"/></svg>' },
+        { id:'rounded', label:'Rounded', svg:'<svg viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="4" width="10" height="10" rx="3"/><rect x="18" y="4" width="10" height="10" rx="3"/><rect x="4" y="18" width="10" height="10" rx="3"/><rect x="20" y="20" width="6" height="6" rx="2"/></svg>' },
+        { id:'dots',    label:'Dots',    svg:'<svg viewBox="0 0 32 32" fill="currentColor"><circle cx="9" cy="9" r="5"/><circle cx="23" cy="9" r="5"/><circle cx="9" cy="23" r="5"/><circle cx="23" cy="23" r="3"/></svg>' },
+        { id:'smooth',  label:'Smooth',  svg:'<svg viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="4" width="10" height="10" rx="5"/><circle cx="23" cy="9" r="5"/><circle cx="9" cy="23" r="5"/><circle cx="23" cy="23" r="3"/></svg>' }
+    ];
+    DESIGNS.forEach(d => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'design-option' + (d.id === state.design ? ' active' : '');
+        b.dataset.design = d.id;
+        b.innerHTML = `<span style="color:#374151">${d.svg}</span><span>${d.label}</span>`;
+        b.onclick = () => {
+            document.querySelectorAll('.design-option').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            state.design = d.id;
             generate(true);
-        });
+        };
+        designBox.appendChild(b);
+    });
 
-        function handleLogoFile(file) {
-            if (!file.type.startsWith('image/')) { toast('Please choose an image file'); return; }
-            if (file.size > 4 * 1024 * 1024) { toast('Image too large (max 4 MB)'); return; }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    state.logoImage = img;
-                    state.logoName = file.name;
-                    logoImg.src = e.target.result;
-                    logoNameEl.textContent = file.name;
-                    logoSizeLabel.textContent = formatBytes(file.size);
-                    logoEmpty.classList.add('hidden');
-                    logoPreviewBox.classList.remove('hidden');
-                    generate(true);
-                    toast('Logo added — error correction auto-set to High');
-                };
-                img.onerror = () => toast('Could not load image');
-                img.src = e.target.result;
+    // ---------- Frames ----------
+    const FRAMES = [
+        { id:'none', label:'None' }, { id:'simple', label:'Simple' },
+        { id:'rounded', label:'Rounded' }, { id:'label', label:'Label' },
+        { id:'banner', label:'Banner' }, { id:'speech', label:'Speech' },
+        { id:'shadow', label:'Shadow' }, { id:'double', label:'Double' }
+    ];
+    const S = '#94a3b8', F = '#e2e8f0';
+    const THUMBS = {
+        none:    `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="12" y="12" width="16" height="16" fill="${F}"/></svg>`,
+        simple:  `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="3" fill="none" stroke="${S}" stroke-width="2"/><rect x="13" y="13" width="14" height="14" fill="${F}"/></svg>`,
+        rounded: `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="9" fill="none" stroke="${S}" stroke-width="2"/><rect x="13" y="13" width="14" height="14" rx="4" fill="${F}"/></svg>`,
+        label:   `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="24" rx="3" fill="none" stroke="${S}" stroke-width="2"/><rect x="12" y="33" width="16" height="5" rx="2" fill="${S}"/><rect x="13" y="12" width="14" height="12" fill="${F}"/></svg>`,
+        banner:  `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="10" width="28" height="24" rx="2" fill="none" stroke="${S}" stroke-width="2"/><rect x="6" y="3" width="28" height="7" fill="${S}"/><rect x="13" y="16" width="14" height="12" fill="${F}"/></svg>`,
+        speech:  `<svg width="40" height="40" viewBox="0 0 40 40"><path d="M8 8h24a3 3 0 013 3v14a3 3 0 01-3 3H20l-6 5v-5H8a3 3 0 01-3-3V11a3 3 0 013-3z" fill="none" stroke="${S}" stroke-width="2"/><rect x="13" y="13" width="14" height="10" fill="${F}"/></svg>`,
+        shadow:  `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="9" y="9" width="26" height="26" rx="3" fill="${S}" opacity="0.4"/><rect x="6" y="6" width="26" height="26" rx="3" fill="#fff" stroke="${S}" stroke-width="2"/><rect x="12" y="12" width="14" height="14" fill="${F}"/></svg>`,
+        double:  `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="3" fill="none" stroke="${S}" stroke-width="2"/><rect x="8" y="8" width="24" height="24" rx="2" fill="none" stroke="${S}" stroke-width="1.5"/><rect x="13" y="13" width="14" height="14" fill="${F}"/></svg>`
+    };
+    FRAMES.forEach(f => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'frame-option' + (f.id === state.frame ? ' active' : '');
+        b.dataset.frame = f.id;
+        b.innerHTML = `<div class="frame-thumb">${THUMBS[f.id]}</div><span class="frame-label">${f.label}</span>`;
+        b.onclick = () => {
+            document.querySelectorAll('.frame-option').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            state.frame = f.id;
+            generate(true);
+        };
+        frameBox.appendChild(b);
+    });
+
+    advToggle.onclick = () => { advToggle.classList.toggle('open'); advContent.classList.toggle('open'); };
+    extToggle.onclick = () => { extToggle.classList.toggle('open'); extContent.classList.toggle('open'); };
+
+    // ---------- Color setters ----------
+    function setFg(v) {
+        const h = hexNorm(v); if (!h) return;
+        fgColor.value = h; fgPreview.style.backgroundColor = h; fgHex.value = h.toUpperCase();
+    }
+    function setBg(v) {
+        const h = hexNorm(v); if (!h) return;
+        bgColor.value = h; bgPreview.style.backgroundColor = h; bgHex.value = h.toUpperCase();
+    }
+    function setTitleColor(v) {
+        const h = hexNorm(v); if (!h) return;
+        titleColor.value = h; titleColorPv.style.backgroundColor = h; titleColorHex.value = h.toUpperCase();
+    }
+
+    fgPreview.onclick = () => fgColor.click();
+    bgPreview.onclick = () => bgColor.click();
+    titleColorPv.onclick = () => titleColor.click();
+
+    fgColor.oninput = () => { setFg(fgColor.value); generate(true); };
+    bgColor.oninput = () => { setBg(bgColor.value); generate(true); };
+    titleColor.oninput = () => { setTitleColor(titleColor.value); generate(true); };
+
+    fgHex.oninput = () => { const h = hexNorm(fgHex.value); if (h) { fgColor.value = h; fgPreview.style.backgroundColor = h; generate(true); } };
+    bgHex.oninput = () => { const h = hexNorm(bgHex.value); if (h) { bgColor.value = h; bgPreview.style.backgroundColor = h; generate(true); } };
+    titleColorHex.oninput = () => { const h = hexNorm(titleColorHex.value); if (h) { titleColor.value = h; titleColorPv.style.backgroundColor = h; generate(true); } };
+
+    sizeInput.oninput = () => { sizeValue.textContent = sizeInput.value; generate(true); };
+    marginInput.oninput = () => { marginValue.textContent = marginInput.value; generate(true); };
+    logoSizeIn.oninput = () => { logoSizeVal.textContent = logoSizeIn.value; generate(true); };
+    logoBgCb.onchange = () => generate(true);
+    titleSizeIn.oninput = () => {
+        titleSizeVal.textContent = (parseInt(titleSizeIn.value, 10) / 10).toFixed(1);
+        generate(true);
+    };
+
+    titleInput.oninput = debounce(() => generate(true), 350);
+    descInput.oninput = debounce(() => generate(true), 350);
+
+    // ---------- Logo upload ----------
+    logoDropzone.onclick = () => logoInput.click();
+    logoDropzone.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); logoInput.click(); } };
+    ['dragenter','dragover'].forEach(ev => logoDropzone.addEventListener(ev, e => { e.preventDefault(); logoDropzone.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(ev => logoDropzone.addEventListener(ev, e => { e.preventDefault(); logoDropzone.classList.remove('dragover'); }));
+    logoDropzone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) readLogo(f); });
+    logoInput.onchange = e => { const f = e.target.files[0]; if (f) readLogo(f); };
+    logoRemoveBtn.onclick = () => {
+        state.logoImg = null;
+        logoInput.value = '';
+        logoEmpty.classList.remove('hidden');
+        logoPreview.classList.add('hidden');
+        generate(true);
+    };
+
+    function readLogo(file) {
+        if (!file.type.startsWith('image/')) { toast('Please choose an image file'); return; }
+        if (file.size > 4 * 1024 * 1024) { toast('Image too large (max 4 MB)'); return; }
+        const r = new FileReader();
+        r.onload = ev => {
+            const img = new Image();
+            img.onload = () => {
+                state.logoImg = img;
+                logoImgEl.src = ev.target.result;
+                logoNameEl.textContent = file.name;
+                logoSizeLbl.textContent = fmtBytes(file.size);
+                logoEmpty.classList.add('hidden');
+                logoPreview.classList.remove('hidden');
+                generate(true);
+                toast('Logo added');
             };
-            reader.readAsDataURL(file);
+            img.onerror = () => toast('Could not load image');
+            img.src = ev.target.result;
+        };
+        r.readAsDataURL(file);
+    }
+
+    textInput.oninput = debounce(() => { if (textInput.value.trim()) generate(false); }, 450);
+    qrForm.onsubmit = e => { e.preventDefault(); generate(false); };
+
+    // =========================================================
+    // RENDER
+    // =========================================================
+
+    function roundRect(ctx, x, y, w, h, r) {
+        if (r > w / 2) r = w / 2;
+        if (r > h / 2) r = h / 2;
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    function drawModule(ctx, x, y, s, style) {
+        switch (style) {
+            case 'rounded': roundRect(ctx, x, y, s, s, s * 0.28); ctx.fill(); break;
+            case 'dots':
+                ctx.beginPath();
+                ctx.arc(x + s / 2, y + s / 2, s / 2, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+            case 'smooth': roundRect(ctx, x, y, s, s, s * 0.45); ctx.fill(); break;
+            default: ctx.fillRect(x, y, s, s);
+        }
+    }
+
+    async function buildQrCanvas(text, size, margin, dark, light) {
+        const ecc = state.logoImg ? 'H' : 'M';
+        const qr = QRCode.create(text, { errorCorrectionLevel: ecc });
+        const n = qr.modules.size;
+        const data = qr.modules.data;
+
+        const total = n + margin * 2;
+        const modulePx = Math.max(1, Math.floor(size / total));
+        const actual = modulePx * total;
+
+        const cv = document.createElement('canvas');
+        cv.width = actual;
+        cv.height = actual;
+        const ctx = cv.getContext('2d');
+
+        ctx.fillStyle = light;
+        ctx.fillRect(0, 0, actual, actual);
+
+        ctx.fillStyle = dark;
+        const off = margin * modulePx;
+        for (let y = 0; y < n; y++) {
+            for (let x = 0; x < n; x++) {
+                if (!data[y * n + x]) continue;
+                drawModule(ctx, off + x * modulePx, off + y * modulePx, modulePx, state.design);
+            }
         }
 
-        const livePreview = debounce(() => { if (textInput.value.trim()) generate(false); }, 450);
-        textInput.addEventListener('input', livePreview);
-
-        qrForm.addEventListener('submit', (e) => { e.preventDefault(); generate(false); });
-
-        // ---------- QR render ----------
-        // Builds a canvas of the QR *module grid* directly from the library's
-        // module bitmask (no pixel-reading — this is what fixes the logo bug).
-        function buildModuleCanvas(text, ecc) {
-            return new Promise((resolve, reject) => {
-                try {
-                    // QRCode.create gives { modules: { size, data } }
-                    const qr = QRCode.create(text, { errorCorrectionLevel: ecc });
-                    const size = qr.modules.size;
-                    const data = qr.modules.data;
-                    resolve({ size, data });
-                } catch (err) { reject(err); }
-            });
+        if (state.logoImg) {
+            drawLogo(cv, n, modulePx, light);
         }
 
-        async function renderStyledQR(text, options) {
-            const size = options.width;
-            const marginModules = options.margin ?? 4;
-            const dark = options.color.dark;
-            const light = options.color.light;
+        return cv;
+    }
 
-            // Auto ECC: High when logo, Medium otherwise
-            const ecc = state.logoImage ? 'H' : 'M';
+    function drawLogo(cv, moduleCount, modulePx, light) {
+        const img = state.logoImg;
+        const pct = parseInt(logoSizeIn.value, 10) / 100;
 
-            const { size: moduleCount, data: moduleData } = await buildModuleCanvas(text, ecc);
+        let logoMods = Math.round(moduleCount * pct);
+        if (logoMods % 2 === 0) logoMods += 1;
+        const logoPx = logoMods * modulePx;
 
-            // Total modules including quiet zone (both sides)
-            const totalModules = moduleCount + marginModules * 2;
-            // Integer pixel size per module to avoid any sub-pixel rendering artifacts
-            const modulePx = Math.max(1, Math.floor(size / totalModules));
-            const actualSize = modulePx * totalModules; // may be slightly <= size
+        const padMods = logoBgCb.checked ? 1 : 0;
+        const bgPx = logoPx + padMods * 2 * modulePx;
 
-            const canvas = document.createElement('canvas');
-            canvas.width = actualSize;
-            canvas.height = actualSize;
-            const ctx = canvas.getContext('2d');
+        const cx = cv.width / 2;
+        const cy = cv.height / 2;
+        const ctx = cv.getContext('2d');
 
-            // Background
+        if (padMods > 0) {
             ctx.fillStyle = light;
-            ctx.fillRect(0, 0, actualSize, actualSize);
-
-            // Draw modules
-            ctx.fillStyle = dark;
-            const offset = marginModules * modulePx;
-            for (let my = 0; my < moduleCount; my++) {
-                for (let mx = 0; mx < moduleCount; mx++) {
-                    if (!moduleData[my * moduleCount + mx]) continue;
-                    const x = offset + mx * modulePx;
-                    const y = offset + my * modulePx;
-                    drawModule(ctx, x, y, modulePx, state.design);
-                }
-            }
-
-            // Logo overlay (in-place, on the module canvas)
-            if (state.logoImage) {
-                drawLogo(canvas, moduleCount, modulePx, offset, light);
-            }
-
-            // Frame + title/desc
-            return drawFrame(canvas, state.frame, options);
-        }
-
-        function drawModule(ctx, x, y, s, style) {
-            switch (style) {
-                case 'rounded': {
-                    roundRect(ctx, x, y, s, s, s * 0.28); ctx.fill(); break;
-                }
-                case 'dots': {
-                    ctx.beginPath();
-                    ctx.arc(x + s / 2, y + s / 2, s / 2, 0, Math.PI * 2);
-                    ctx.fill(); break;
-                }
-                case 'smooth': {
-                    roundRect(ctx, x, y, s, s, s * 0.4); ctx.fill(); break;
-                }
-                default:
-                    ctx.fillRect(x, y, s, s);
-            }
-        }
-
-        function roundRect(ctx, x, y, w, h, r) {
-            if (r > w / 2) r = w / 2;
-            if (r > h / 2) r = h / 2;
-            ctx.beginPath();
-            ctx.moveTo(x + r, y);
-            ctx.arcTo(x + w, y, x + w, y + h, r);
-            ctx.arcTo(x + w, y + h, x, y + h, r);
-            ctx.arcTo(x, y + h, x, y, r);
-            ctx.arcTo(x, y, x + w, y, r);
-            ctx.closePath();
-        }
-
-        // Draw logo centered on the QR canvas.
-        // - Uses module-aligned sizing so we never cover a half-module.
-        // - Adds a light-colored pad (larger if checkbox on) for contrast.
-        // - Keeps logo box ≤ 25% of the QR (safe with ECC H).
-        function drawLogo(canvas, moduleCount, modulePx, offset, lightColor) {
-            const img = state.logoImage;
-            const pct = parseInt(logoSizeInput.value, 10) / 100;
-            const qrPixelSize = moduleCount * modulePx;
-
-            // Logo target size in pixels, snapped to whole modules for clean edges
-            let logoModules = Math.round(moduleCount * pct);
-            // Keep it odd so the logo is centered on a module (QR center is a module)
-            if (logoModules % 2 === 0) logoModules += 1;
-            const logoSizePx = logoModules * modulePx;
-
-            // Padding: if checkbox is on, add 1 module around the logo
-            const padModules = logoBgCheckbox.checked ? 1 : 0;
-            const bgSizePx = logoSizePx + padModules * 2 * modulePx;
-
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-
-            const ctx = canvas.getContext('2d');
-
-            // Background pad (rounded square)
-            ctx.fillStyle = lightColor;
-            roundRect(ctx, cx - bgSizePx / 2, cy - bgSizePx / 2, bgSizePx, bgSizePx, Math.round(bgSizePx * 0.18));
+            roundRect(ctx, cx - bgPx / 2, cy - bgPx / 2, bgPx, bgPx, Math.round(bgPx * 0.15));
             ctx.fill();
-
-            // Aspect-fit the image inside logoSizePx
-            const scale = Math.min(logoSizePx / img.width, logoSizePx / img.height);
-            const dw = img.width * scale;
-            const dh = img.height * scale;
-
-            ctx.save();
-            roundRect(ctx, cx - dw / 2, cy - dh / 2, dw, dh, Math.round(Math.min(dw, dh) * 0.10));
-            ctx.clip();
-            ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
-            ctx.restore();
         }
 
-        function drawFrame(qrCanvas, frameId, options) {
-            const title = (titleInput.value || '').trim();
-            const desc = (descInput.value || '').trim();
-            const hasText = title || desc;
+        const scale = Math.min(logoPx / img.width, logoPx / img.height);
+        const dw = img.width * scale;
+        const dh = img.height * scale;
 
-            if ((!frameId || frameId === 'none') && !hasText) return qrCanvas;
+        ctx.save();
+        roundRect(ctx, cx - dw / 2, cy - dh / 2, dw, dh, Math.round(Math.min(dw, dh) * 0.10));
+        ctx.clip();
+        ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
+        ctx.restore();
+    }
 
-            const padding = Math.round(qrCanvas.width * 0.10);
-            const borderW = Math.max(4, Math.round(qrCanvas.width * 0.012));
-            const fg = options.color.dark;
-            const bg = options.color.light;
+    // ---------------------------------------------------------
+    // composeFinal — fixes Task 2 (frames no longer overlap text)
+    //
+    // Layout:
+    //   [ pad | frame border | pad | QR | pad | frame border | pad ]
+    //   [                       GAP (fixed)                        ]
+    //   [                    Title (if any)                        ]
+    //   [                  Description (if any)                    ]
+    //   [                       pad bottom                         ]
+    //
+    // The frame ONLY wraps the QR. Text always sits below the frame
+    // with a guaranteed gap that is >= frame border width * 3.
+    // ---------------------------------------------------------
+    function composeFinal(qrCv) {
+        const frameId = state.frame;
+        const title = (titleInput.value || '').trim();
+        const desc = (descInput.value || '').trim();
+        const hasText = title || desc;
+        const noFrame = !frameId || frameId === 'none';
 
-            const fontSizeTitle = Math.max(14, Math.round(qrCanvas.width * 0.06));
-            const fontSizeDesc = Math.max(11, Math.round(qrCanvas.width * 0.042));
-            const lineGap = Math.round(qrCanvas.width * 0.015);
+        if (noFrame && !hasText) return qrCv;
 
-            // Estimate desc lines for layout
-            const approxCharW = fontSizeDesc * 0.55;
-            const maxDescWidth = qrCanvas.width;
-            const charsPerLine = Math.max(10, Math.floor(maxDescWidth / approxCharW));
-            const descLines = desc ? Math.ceil(desc.length / charsPerLine) : 0;
+        const qrW = qrCv.width;
+        const fg = fgColor.value;
+        const bg = bgColor.value;
+        const titleCol = hexNorm(titleColor.value) || fg;
 
-            const titleH = title ? fontSizeTitle + lineGap * 2 : 0;
-            const descH = desc ? descLines * (fontSizeDesc + 2) + lineGap : 0;
-            const textBlockH = (titleH || descH) ? lineGap + titleH + descH + lineGap : 0;
-            const bottomExtra = textBlockH;
+        // Frame geometry (relative to QR size)
+        const borderW = Math.max(4, Math.round(qrW * 0.012));
+        const frameInnerPad = Math.round(qrW * 0.04); // space between QR and frame stroke
+        const frameOuterPad = Math.round(qrW * 0.03); // space between frame stroke and canvas edge
 
-            const out = document.createElement('canvas');
-            out.width = qrCanvas.width + padding * 2;
-            out.height = qrCanvas.height + padding * 2 + bottomExtra;
-            const ctx = out.getContext('2d');
+        // The frame rectangle in final canvas coordinates
+        //   frameX = frameOuterPad
+        //   frameW = qrW + 2*frameInnerPad
+        //   final W = frameW + 2*frameOuterPad
+        const frameX = frameOuterPad;
+        const frameY = frameOuterPad;
+        const frameW = qrW + 2 * frameInnerPad;
+        const frameH = qrW + 2 * frameInnerPad;
+        const finalW = frameW + 2 * frameOuterPad;
 
-            ctx.fillStyle = bg;
-            ctx.fillRect(0, 0, out.width, out.height);
+        // Text block
+        const titlePct = parseInt(titleSizeIn.value, 10) / 1000; // 0.03..0.12
+        const titleFontPx = Math.max(16, Math.round(qrW * titlePct));
+        const descFontPx = Math.max(12, Math.round(titleFontPx * 0.72));
+        const lineGap = Math.max(4, Math.round(descFontPx * 0.35));
+
+        // Measure desc
+        const mctx = document.createElement('canvas').getContext('2d');
+        mctx.font = `400 ${descFontPx}px Poppins, sans-serif`;
+        const maxTextW = finalW - frameOuterPad * 2;
+        const descLines = desc ? wrapLines(mctx, desc, maxTextW) : [];
+        const descLineH = descFontPx + 4;
+        const descH = descLines.length * descLineH;
+
+        const titleH = title ? titleFontPx : 0;
+        const titleDescGap = (title && desc) ? Math.round(titleFontPx * 0.25) : 0;
+
+        // Gap between the frame bottom and the first line of text.
+        // Guaranteed >= 3 * borderW so the stroke can never touch text.
+        const frameTextGap = hasText
+            ? Math.max(Math.round(qrW * 0.06), borderW * 3)
+            : 0;
+
+        const textBlockH = hasText
+            ? frameTextGap + titleH + titleDescGap + descH
+            : 0;
+
+        const bottomPad = hasText ? Math.round(qrW * 0.04) : 0;
+
+        const finalH = frameY + frameH + textBlockH + bottomPad;
+
+        const out = document.createElement('canvas');
+        out.width = finalW;
+        out.height = finalH;
+        const ctx = out.getContext('2d');
+
+        // Background
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, finalW, finalH);
+
+        // Draw frame (only around the QR, NOT around text)
+        if (!noFrame) {
+            drawFrame(ctx, frameId, frameX, frameY, frameW, frameH, fg, bg, borderW);
+        }
+
+        // Draw QR inside the frame with the inner padding
+        ctx.drawImage(qrCv, frameX + frameInnerPad, frameY + frameInnerPad);
+
+        // Draw text below the frame with guaranteed gap
+        if (hasText) {
+            const textTop = frameY + frameH + frameTextGap;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            let y = textTop;
+
+            if (title) {
+                ctx.fillStyle = titleCol;
+                ctx.font = `700 ${titleFontPx}px Poppins, sans-serif`;
+                ctx.fillText(title, finalW / 2, y, maxTextW);
+                y += titleH + titleDescGap;
+            }
+            if (desc) {
+                ctx.fillStyle = fg;
+                ctx.globalAlpha = 0.75;
+                ctx.font = `400 ${descFontPx}px Poppins, sans-serif`;
+                for (const line of descLines) {
+                    ctx.fillText(line, finalW / 2, y);
+                    y += descLineH;
+                }
+                ctx.globalAlpha = 1;
+            }
+        } else {
+            // No frame + hasText never reaches here, but if noFrame && hasText:
+            // we draw a subtle divider above the text so it looks intentional.
+            // (Actually handled below - noFrame + hasText goes through this branch.)
+        }
+
+        // If noFrame but hasText: add a subtle divider line above text
+        if (noFrame && hasText) {
+            // Already drawn bg; text drawn above. Add divider between QR and text.
+            const divY = frameY + frameH + Math.round(frameTextGap * 0.5);
             ctx.strokeStyle = fg;
-            ctx.fillStyle = bg;
-            ctx.lineWidth = borderW;
-
-            const bx = padding / 2;
-            const by = padding / 2;
-            const bw = out.width - padding;
-            const bh = out.height - padding - bottomExtra;
-
-            switch (frameId) {
-                case 'simple':
-                    ctx.strokeRect(bx, by, bw, bh); break;
-                case 'rounded':
-                    roundRect(ctx, bx, by, bw, bh, Math.min(bw, bh) * 0.08); ctx.stroke(); break;
-                case 'label':
-                case 'banner':
-                case 'speech':
-                case 'double':
-                    roundRect(ctx, bx, by, bw, bh, Math.min(bw, bh) * 0.06); ctx.stroke();
-                    if (frameId === 'double') {
-                        const inset = Math.max(6, padding * 0.3);
-                        ctx.save();
-                        ctx.lineWidth = Math.max(2, borderW * 0.5);
-                        roundRect(ctx, bx + inset, by + inset, bw - inset * 2, bh - inset * 2, Math.min(bw, bh) * 0.03);
-                        ctx.stroke();
-                        ctx.restore();
-                    }
-                    break;
-                case 'shadow': {
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-                    ctx.shadowBlur = Math.round(out.width * 0.03);
-                    ctx.shadowOffsetY = Math.round(out.width * 0.012);
-                    ctx.fillStyle = bg;
-                    roundRect(ctx, bx, by, bw, bh, Math.min(bw, bh) * 0.06);
-                    ctx.fill();
-                    ctx.restore();
-                    roundRect(ctx, bx, by, bw, bh, Math.min(bw, bh) * 0.06);
-                    ctx.stroke();
-                    break;
-                }
-                default:
-                    if (hasText) {
-                        ctx.beginPath();
-                        ctx.moveTo(padding, qrCanvas.height + padding * 0.55);
-                        ctx.lineTo(out.width - padding, qrCanvas.height + padding * 0.55);
-                        ctx.strokeStyle = fg;
-                        ctx.globalAlpha = 0.15;
-                        ctx.lineWidth = 1.5;
-                        ctx.stroke();
-                        ctx.globalAlpha = 1;
-                    }
-            }
-
-            ctx.drawImage(qrCanvas, padding, padding);
-
-            if (hasText) {
-                const textTop = qrCanvas.height + padding + lineGap;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'top';
-                if (title) {
-                    ctx.fillStyle = fg;
-                    ctx.font = `700 ${fontSizeTitle}px Poppins, sans-serif`;
-                    ctx.fillText(title, out.width / 2, textTop, out.width - padding * 2);
-                }
-                if (desc) {
-                    ctx.fillStyle = fg;
-                    ctx.globalAlpha = 0.75;
-                    ctx.font = `400 ${fontSizeDesc}px Poppins, sans-serif`;
-                    wrapText(ctx, desc, out.width / 2, textTop + titleH, out.width - padding * 2, fontSizeDesc + 2);
-                    ctx.globalAlpha = 1;
-                }
-            }
-
-            return out;
+            ctx.globalAlpha = 0.15;
+            ctx.lineWidth = Math.max(1, Math.round(qrW * 0.002));
+            ctx.beginPath();
+            ctx.moveTo(finalW * 0.15, divY);
+            ctx.lineTo(finalW * 0.85, divY);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
         }
 
-        function wrapText(ctx, text, centerX, startY, maxWidth, lineHeight) {
-            const words = text.split(/\s+/);
-            let line = '';
-            let y = startY;
-            for (let n = 0; n < words.length; n++) {
-                const testLine = line ? line + ' ' + words[n] : words[n];
-                const metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && line) {
-                    ctx.fillText(line, centerX, y);
-                    line = words[n];
-                    y += lineHeight;
-                } else { line = testLine; }
+        return out;
+    }
+
+    function drawFrame(ctx, frameId, x, y, w, h, fg, bg, borderW) {
+        ctx.strokeStyle = fg;
+        ctx.lineWidth = borderW;
+
+        switch (frameId) {
+            case 'simple':
+                ctx.strokeRect(x, y, w, h);
+                break;
+
+            case 'rounded':
+                roundRect(ctx, x, y, w, h, Math.min(w, h) * 0.07);
+                ctx.stroke();
+                break;
+
+            case 'double':
+                roundRect(ctx, x, y, w, h, Math.min(w, h) * 0.05);
+                ctx.stroke();
+                ctx.save();
+                ctx.lineWidth = Math.max(2, borderW * 0.5);
+                const inset = Math.max(6, borderW * 2.5);
+                roundRect(ctx, x + inset, y + inset, w - inset * 2, h - inset * 2, Math.min(w, h) * 0.03);
+                ctx.stroke();
+                ctx.restore();
+                break;
+
+            case 'shadow':
+                // shadow box first
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.28)';
+                ctx.shadowBlur = Math.round(w * 0.03);
+                ctx.shadowOffsetY = Math.round(w * 0.012);
+                ctx.fillStyle = bg;
+                roundRect(ctx, x, y, w, h, Math.min(w, h) * 0.06);
+                ctx.fill();
+                ctx.restore();
+                // border stroke on top
+                roundRect(ctx, x, y, w, h, Math.min(w, h) * 0.06);
+                ctx.stroke();
+                break;
+
+            case 'label':
+            case 'banner':
+            case 'speech':
+                // Simple rounded box - text is always below the frame now
+                roundRect(ctx, x, y, w, h, Math.min(w, h) * 0.06);
+                ctx.stroke();
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    function wrapLines(ctx, text, maxW) {
+        const words = text.split(/\s+/);
+        const lines = [];
+        let line = '';
+        for (const w of words) {
+            const test = line ? line + ' ' + w : w;
+            if (ctx.measureText(test).width > maxW && line) {
+                lines.push(line);
+                line = w;
+            } else {
+                line = test;
             }
-            if (line) ctx.fillText(line, centerX, y);
         }
+        if (line) lines.push(line);
+        return lines;
+    }
 
-        // ---------- Generate ----------
-        async function generate(silent) {
-            const text = textInput.value.trim();
-            if (!text) { if (!silent) toast('Please enter some text or a URL'); return; }
-            const myId = ++state.generationId;
+    // =========================================================
+    // GENERATE
+    // =========================================================
+    async function generate(silent) {
+        const text = textInput.value.trim();
+        if (!text) { if (!silent) toast('Please enter some text or a URL'); return; }
 
-            const options = {
-                color: { dark: fgColor.value, light: bgColor.value },
-                width: parseInt(sizeInput.value, 10),
-                margin: parseInt(marginInput.value, 10)
-            };
+        const myId = ++state.genId;
+        const size = parseInt(sizeInput.value, 10);
+        const margin = parseInt(marginInput.value, 10);
+        const dark = fgColor.value;
+        const light = bgColor.value;
 
-            if (!silent) qrCodeDiv.innerHTML = loaderHTML();
+        if (!silent) qrCodeDiv.innerHTML = '<div class="text-gray-400 text-sm animate-pulse">Generating…</div>';
 
-            try {
-                const styled = await renderStyledQR(text, options);
-                if (myId !== state.generationId) return;
+        try {
+            const baseCv = await buildQrCanvas(text, size, margin, dark, light);
+            if (myId !== state.genId) return;
 
-                qrCodeDiv.innerHTML = '';
-                styled.classList.add('mx-auto');
-                qrCodeDiv.appendChild(styled);
-                qrCodeDiv.setAttribute('aria-label', 'QR code for ' + text.slice(0, 60));
+            const finalCv = composeFinal(baseCv);
+            if (myId !== state.genId) return;
 
-                state.currentCanvas = styled;
+            qrCodeDiv.innerHTML = '';
+            qrCodeDiv.appendChild(finalCv);
+            state.currentCanvas = finalCv;
 
-                downloadPngBtn.disabled = false;
-                downloadJpegBtn.disabled = false;
-                downloadSvgBtn.disabled = false;
-                copyImageBtn.disabled = false;
+            btnPng.disabled = false;
+            btnJpeg.disabled = false;
+            btnSvg.disabled = false;
+            btnCopy.disabled = false;
 
-                if (!silent) {
-                    [downloadPngBtn, downloadJpegBtn, downloadSvgBtn, copyImageBtn].forEach(b => b.classList.add('pulse'));
-                    setTimeout(() => [downloadPngBtn, downloadJpegBtn, downloadSvgBtn, copyImageBtn].forEach(b => b.classList.remove('pulse')), 1500);
-                }
-            } catch (err) {
-                console.error(err);
-                if (myId !== state.generationId) return;
-                if (!silent) {
-                    qrCodeDiv.innerHTML = '<p class="text-red-500 text-center text-sm">Error generating QR code. Please try again.</p>';
-                    toast('Failed to generate QR code');
-                }
+            if (!silent) {
+                [btnPng, btnJpeg, btnSvg, btnCopy].forEach(b => b.classList.add('pulse'));
+                setTimeout(() => [btnPng, btnJpeg, btnSvg, btnCopy].forEach(b => b.classList.remove('pulse')), 1500);
             }
+        } catch (err) {
+            console.error(err);
+            if (myId !== state.genId) return;
+            qrCodeDiv.innerHTML = '<p class="text-red-500 text-center text-sm">Error generating QR code.</p>';
+            if (!silent) toast('Failed: ' + (err.message || 'unknown'));
+        }
+    }
+
+    // =========================================================
+    // DOWNLOADS (bulletproof)
+    //
+    // Strategy:
+    //  1. Canvas → Blob via toBlob (more reliable than toDataURL for large canvases)
+    //  2. ObjectURL from blob
+    //  3. Anchor with `download` attr - click it
+    //  4. If after 800ms nothing downloaded (file:// blocked case),
+    //     show a fallback link the user can right-click to save
+    // =========================================================
+    function canvasToBlob(canvas, type, quality) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob returned null')), type, quality);
+        });
+    }
+
+    function downloadBlob(blob, filename, mimeLabel) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+
+        try {
+            a.click();
+        } catch (e) {
+            console.error('a.click failed', e);
         }
 
-        function loaderHTML() {
-            return `
-                <div class="animate-pulse flex items-center justify-center">
-                    <div class="flex flex-col items-center">
-                        <svg class="animate-spin h-8 w-8 text-blue-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span class="text-gray-500 text-sm">Generating QR code...</span>
-                    </div>
-                </div>
-            `;
-        }
+        // Give browser time to start download, then clean up
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+            if (a.parentNode) a.parentNode.removeChild(a);
+        }, 1500);
 
-        // ---------- Downloads ----------
-        downloadPngBtn.addEventListener('click', () => {
-            if (!state.currentCanvas) return;
-            const url = state.currentCanvas.toDataURL('image/png');
-            triggerDownload(url, `qr-code-${Date.now()}.png`);
-            toast('PNG downloaded');
+        // Fallback UI: after a short delay, if user is likely on file:// or
+        // the download silently failed, show a manual link.
+        // We can't detect "download succeeded" reliably, so we only show
+        // the fallback if the page is file:// protocol (Chrome blocks download attr there).
+        if (location.protocol === 'file:') {
+            showFallbackLink(url, filename, mimeLabel);
+        }
+    }
+
+    function showFallbackLink(blobUrl, filename, mimeLabel) {
+        // remove any existing fallback
+        const existing = document.getElementById('dl-fallback');
+        if (existing) existing.remove();
+
+        // Clone the blob URL for the fallback (since the main one gets revoked)
+        const fallbackUrl = blobUrl;
+
+        const div = document.createElement('div');
+        div.id = 'dl-fallback';
+        div.className = 'fallback-link';
+        div.innerHTML = mimeLabel + ' ready — <a href="' + fallbackUrl + '" download="' + filename + '" target="_blank">click here</a> if download didn\'t start. <span style="opacity:.7">(You\'re on file:// — Chrome blocks auto-download; use the link.)</span>';
+
+        // Also add a "right-click to save" hint via opening in new tab
+        const a = div.querySelector('a');
+        a.addEventListener('click', () => {
+            // let the browser handle it; the anchor has download + target
         });
 
-        downloadJpegBtn.addEventListener('click', () => {
-            if (!state.currentCanvas) return;
+        document.body.appendChild(div);
+        setTimeout(() => { if (div.parentNode) div.remove(); }, 8000);
+    }
+
+    btnPng.onclick = async () => {
+        if (!state.currentCanvas) return;
+        try {
+            const blob = await canvasToBlob(state.currentCanvas, 'image/png');
+            downloadBlob(blob, 'qr-code-' + Date.now() + '.png', 'PNG');
+            toast('PNG ready');
+        } catch (e) {
+            console.error(e);
+            toast('PNG download failed: ' + e.message);
+        }
+    };
+
+    btnJpeg.onclick = async () => {
+        if (!state.currentCanvas) return;
+        try {
             const src = state.currentCanvas;
             const tmp = document.createElement('canvas');
-            tmp.width = src.width; tmp.height = src.height;
+            tmp.width = src.width;
+            tmp.height = src.height;
             const tctx = tmp.getContext('2d');
             tctx.fillStyle = bgColor.value || '#ffffff';
             tctx.fillRect(0, 0, tmp.width, tmp.height);
             tctx.drawImage(src, 0, 0);
-            const url = tmp.toDataURL('image/jpeg', 0.95);
-            triggerDownload(url, `qr-code-${Date.now()}.jpg`);
-            toast('JPEG downloaded');
-        });
-
-        downloadSvgBtn.addEventListener('click', async () => {
-            if (!state.currentCanvas) return;
-            try {
-                const dataUrl = state.currentCanvas.toDataURL('image/png');
-                const w = state.currentCanvas.width, h = state.currentCanvas.height;
-                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><image href="${dataUrl}" width="${w}" height="${h}"/></svg>`;
-                const blob = new Blob([svg], { type: 'image/svg+xml' });
-                const url = URL.createObjectURL(blob);
-                triggerDownload(url, `qr-code-${Date.now()}.svg`);
-                setTimeout(() => URL.revokeObjectURL(url), 1500);
-                toast('SVG downloaded');
-            } catch (e) { console.error(e); toast('SVG download failed'); }
-        });
-
-        copyImageBtn.addEventListener('click', async () => {
-            if (!state.currentCanvas) return;
-            try {
-                const blob = await new Promise((resolve) => state.currentCanvas.toBlob(resolve, 'image/png'));
-                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                toast('Copied to clipboard');
-            } catch (err) { console.error(err); toast('Copy failed — try downloading instead'); }
-        });
-
-        function triggerDownload(url, filename) {
-            const a = document.createElement('a');
-            a.href = url; a.download = filename;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            const blob = await canvasToBlob(tmp, 'image/jpeg', 0.95);
+            downloadBlob(blob, 'qr-code-' + Date.now() + '.jpg', 'JPEG');
+            toast('JPEG ready');
+        } catch (e) {
+            console.error(e);
+            toast('JPEG download failed: ' + e.message);
         }
+    };
 
-        // ---------- Persistence ----------
-        const STORAGE_KEY = 'qrgen-settings-v3';
-        function saveSettings() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                    fg: fgColor.value, bg: bgColor.value,
-                    size: sizeInput.value, margin: marginInput.value,
-                    design: state.design, frame: state.frame,
-                    title: titleInput.value, desc: descInput.value,
-                    logoSize: logoSizeInput.value, logoBg: logoBgCheckbox.checked
-                }));
-            } catch (_) {}
+    btnSvg.onclick = async () => {
+        if (!state.currentCanvas) return;
+        try {
+            const pngBlob = await canvasToBlob(state.currentCanvas, 'image/png');
+            const reader = new FileReader();
+            const dataUrl = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(pngBlob);
+            });
+            const w = state.currentCanvas.width;
+            const h = state.currentCanvas.height;
+            const svg = '<?xml version="1.0" encoding="UTF-8"?>'
+                + '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
+                + ' width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">'
+                + '<image xlink:href="' + dataUrl + '" width="' + w + '" height="' + h + '"/>'
+                + '</svg>';
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            downloadBlob(blob, 'qr-code-' + Date.now() + '.svg', 'SVG');
+            toast('SVG ready');
+        } catch (e) {
+            console.error(e);
+            toast('SVG download failed: ' + e.message);
         }
-        function loadSettings() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return;
-                const s = JSON.parse(raw);
-                if (s.fg) setFgColor(s.fg);
-                if (s.bg) setBgColor(s.bg);
-                if (s.size) { sizeInput.value = s.size; sizeValue.textContent = s.size; }
-                if (s.margin) { marginInput.value = s.margin; marginValue.textContent = s.margin; }
-                if (s.title) titleInput.value = s.title;
-                if (s.desc) descInput.value = s.desc;
-                if (s.logoSize) { logoSizeInput.value = s.logoSize; logoSizeValue.textContent = s.logoSize; }
-                if (typeof s.logoBg === 'boolean') logoBgCheckbox.checked = s.logoBg;
-                if (s.design && document.querySelector(`.design-option[data-design="${s.design}"]`)) {
-                    document.querySelectorAll('.design-option').forEach(x => x.classList.remove('active'));
-                    document.querySelector(`.design-option[data-design="${s.design}"]`).classList.add('active');
-                    state.design = s.design;
-                }
-                if (s.frame && document.querySelector(`.frame-option[data-frame="${s.frame}"]`)) {
-                    document.querySelectorAll('.frame-option').forEach(x => x.classList.remove('active'));
-                    document.querySelector(`.frame-option[data-frame="${s.frame}"]`).classList.add('active');
-                    state.frame = s.frame;
-                }
-            } catch (_) {}
-        }
-        [fgHex, bgHex, sizeInput, marginInput, titleInput, descInput, logoSizeInput, logoBgCheckbox].forEach(el => {
-            el.addEventListener('change', saveSettings);
-        });
-        document.addEventListener('click', saveSettings);
+    };
 
-        loadSettings();
-    })();
-    </script>
+    btnCopy.onclick = async () => {
+        if (!state.currentCanvas) return;
+        try {
+            const blob = await canvasToBlob(state.currentCanvas, 'image/png');
+            if (!navigator.clipboard || !navigator.clipboard.write) {
+                throw new Error('Clipboard API unavailable (needs HTTPS or localhost)');
+            }
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            toast('Copied to clipboard');
+        } catch (e) {
+            console.error(e);
+            toast('Copy failed: ' + e.message + ' — use download instead');
+        }
+    };
+})();
+</script>
 </body>
 </html>

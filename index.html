@@ -5,58 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        
+
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
         }
-        
         .color-preview {
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
-            display: inline-block;
-            cursor: pointer;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 34px; height: 34px; border-radius: 8px; display: inline-block;
+            cursor: pointer; border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: transform 0.15s ease;
         }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .color-preview:hover { transform: scale(1.08); }
+        .visually-hidden {
+            position: absolute !important; width: 1px; height: 1px;
+            padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0,0,0,0); white-space: nowrap; border: 0;
         }
-        
-        .pulse {
-            animation: pulse 1.5s infinite;
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+        .pulse { animation: pulse 1.5s infinite; }
+        #qr-code canvas, #qr-code img, #qr-code svg { max-width: 100%; height: auto; display: block; }
+        .preset-swatch {
+            width: 26px; height: 26px; border-radius: 6px;
+            border: 2px solid #e5e7eb; cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s; padding: 0;
+        }
+        .preset-swatch:hover { transform: scale(1.12); border-color: #3b82f6; }
+        .frame-option, .design-option {
+            cursor: pointer; border: 2px solid #e5e7eb; border-radius: 10px;
+            padding: 6px; background: #fff; transition: all 0.2s ease;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .frame-option:hover, .design-option:hover { border-color: #93c5fd; }
+        .frame-option.active, .design-option.active {
+            border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        .frame-option .frame-thumb {
+            width: 54px; height: 54px; border-radius: 6px; background: #f9fafb;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .frame-option .frame-label { font-size: 10px; font-weight: 500; color: #4b5563; text-align: center; line-height: 1.1; }
+        .design-option svg { width: 32px; height: 32px; }
+        .design-option span { font-size: 10px; font-weight: 500; color: #4b5563; }
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            height: 8px; border-radius: 4px; background: #e5e7eb; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px; border-radius: 50%; background: #3b82f6;
+            cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px; border-radius: 50%; background: #3b82f6;
+            cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .collapsible-content.open { max-height: 2000px; }
+        .collapsible-toggle svg { transition: transform 0.3s ease; }
+        .collapsible-toggle.open svg { transform: rotate(180deg); }
+        #toast {
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1f2937; color: #fff; padding: 12px 24px;
+            border-radius: 10px; font-size: 14px; font-weight: 500;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0;
+            transition: all 0.3s ease; z-index: 1000; pointer-events: none;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        :focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
+        .logo-dropzone {
+            border: 2px dashed #cbd5e1; border-radius: 10px; padding: 16px;
+            text-align: center; transition: all 0.2s ease; cursor: pointer; background: #f8fafc;
+        }
+        .logo-dropzone:hover, .logo-dropzone.dragover { border-color: #3b82f6; background: #eff6ff; }
+        .logo-preview-box {
+            display: flex; align-items: center; gap: 12px; padding: 10px;
+            background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
+        }
+        .logo-preview-box img {
+            width: 44px; height: 44px; object-fit: contain;
+            border-radius: 6px; background: #fff; padding: 2px;
         }
     </style>
 </head>
 <body class="py-10 px-4">
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
+    <div class="max-w-6xl mx-auto">
         <header class="text-center mb-10">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-3">QR Code Generator</h1>
-            <p class="text-gray-600 max-w-md mx-auto">Transform any text or URL into a scannable QR code instantly. Customize colors and download your QR.</p>
+            <p class="text-gray-600 max-w-md mx-auto">Transform any text or URL into a scannable QR code instantly. Customize colors, design, frames, add a logo, and download.</p>
         </header>
 
-        <!-- Main Content -->
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="md:flex">
-                <!-- Input Section -->
-                <div class="p-8 md:w-1/2">
+            <div class="lg:flex">
+                <!-- Input -->
+                <div class="p-6 sm:p-8 lg:w-1/2">
                     <form id="qrForm">
                         <div class="mb-6">
                             <label for="text-input" class="block text-sm font-medium text-gray-700 mb-2">Enter URL or Text</label>
                             <div class="relative">
-                                <input type="text" id="text-input" placeholder="https://example.com or any text" 
+                                <input type="text" id="text-input" placeholder="https://example.com or any text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300" required>
                                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                     </svg>
                                 </div>
@@ -65,40 +119,139 @@
 
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">QR Code Colors</label>
-                            <div class="flex items-center space-x-4">
-                                <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Foreground</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="fg-color" class="block text-xs text-gray-500 mb-1">Foreground</label>
                                     <div class="flex items-center space-x-2">
-                                        <input type="color" id="fg-color" value="#000000" class="opacity-0 absolute h-0 w-0">
-                                        <div id="fg-preview" class="color-preview bg-black"></div>
-                                        <input type="text" id="fg-hex" value="#000000" class="w-20 px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                        <input type="color" id="fg-color" value="#000000" class="visually-hidden">
+                                        <button type="button" id="fg-preview" class="color-preview bg-black" aria-label="Pick foreground color"></button>
+                                        <input type="text" id="fg-hex" value="#000000" class="w-20 px-2 py-1.5 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                                     </div>
                                 </div>
-                                <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Background</label>
+                                <div>
+                                    <label for="bg-color" class="block text-xs text-gray-500 mb-1">Background</label>
                                     <div class="flex items-center space-x-2">
-                                        <input type="color" id="bg-color" value="#ffffff" class="opacity-0 absolute h-0 w-0">
-                                        <div id="bg-preview" class="color-preview bg-white border-gray-300"></div>
-                                        <input type="text" id="bg-hex" value="#ffffff" class="w-20 px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                        <input type="color" id="bg-color" value="#ffffff" class="visually-hidden">
+                                        <button type="button" id="bg-preview" class="color-preview bg-white" aria-label="Pick background color"></button>
+                                        <input type="text" id="bg-hex" value="#FFFFFF" class="w-20 px-2 py-1.5 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                                     </div>
                                 </div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="block text-xs text-gray-500 mb-1.5">Quick themes</label>
+                                <div class="flex flex-wrap gap-2" id="preset-themes"></div>
                             </div>
                         </div>
 
                         <div class="mb-6">
-                            <label for="size-input" class="block text-sm font-medium text-gray-700 mb-2">Size (px)</label>
-                            <input type="range" id="size-input" min="100" max="1000" value="200" class="w-full">
-                            <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>100</span>
-                                <span>300</span>
-                                <span>500</span>
-                                <span>700</span>
-                                <span>1000</span>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Design Style</label>
+                            <div class="grid grid-cols-4 gap-2" id="design-options"></div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Frame (optional)</label>
+                            <div class="grid grid-cols-4 gap-2" id="frame-options"></div>
+                        </div>
+
+                        <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
+                            <button type="button" id="extras-toggle" class="collapsible-toggle w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 transition text-sm font-medium text-gray-700">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Logo, Title &amp; Description
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="extras-content" class="collapsible-content">
+                                <div class="p-4 space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo (optional)</label>
+                                        <div id="logo-empty">
+                                            <div id="logo-dropzone" class="logo-dropzone" role="button" tabindex="0" aria-label="Upload logo image">
+                                                <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="visually-hidden">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.9A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                                </svg>
+                                                <p class="text-xs text-gray-600 font-medium">Click or drop image here</p>
+                                                <p class="text-[10px] text-gray-400 mt-0.5">PNG, JPG, SVG, WebP · max 4 MB</p>
+                                            </div>
+                                        </div>
+                                        <div id="logo-preview" class="logo-preview-box hidden">
+                                            <img id="logo-img" alt="Logo preview">
+                                            <div class="flex-1 min-w-0">
+                                                <p id="logo-name" class="text-xs font-medium text-gray-700 truncate">logo.png</p>
+                                                <p id="logo-size-label" class="text-[10px] text-gray-400">-</p>
+                                            </div>
+                                            <button type="button" id="logo-remove" class="text-red-500 hover:text-red-700 p-1" aria-label="Remove logo">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="mt-2">
+                                            <label for="logo-size-input" class="block text-xs text-gray-500 mb-1">
+                                                Logo size: <span id="logo-size-value" class="font-semibold text-blue-600">20</span>% of QR
+                                            </label>
+                                            <input type="range" id="logo-size-input" min="12" max="25" step="1" value="20" class="w-full">
+                                            <p class="text-[10px] text-gray-400 mt-1">Capped at 25% to keep the code scannable. Error correction auto-set to High when a logo is used.</p>
+                                        </div>
+                                        <div class="mt-2 flex items-center gap-2">
+                                            <input type="checkbox" id="logo-bg" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <label for="logo-bg" class="text-xs text-gray-600">Add padding behind logo (recommended)</label>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label for="title-input" class="block text-sm font-medium text-gray-700 mb-1">Title (optional)</label>
+                                        <input type="text" id="title-input" maxlength="40" placeholder="My Awesome QR"
+                                            class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+
+                                    <div>
+                                        <label for="desc-input" class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                                        <textarea id="desc-input" rows="2" maxlength="120" placeholder="Scan to visit our website"
+                                            class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
+                            <button type="button" id="advanced-toggle" class="collapsible-toggle w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
+                                <span>Advanced Options</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="advanced-content" class="collapsible-content">
+                                <div class="p-4 space-y-4">
+                                    <div>
+                                        <label for="size-input" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Size: <span id="size-value" class="font-semibold text-blue-600">400</span>px
+                                        </label>
+                                        <input type="range" id="size-input" min="200" max="1000" step="50" value="400" class="w-full">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>200</span><span>400</span><span>600</span><span>800</span><span>1000</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="margin-input" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Quiet Zone (margin): <span id="margin-value" class="font-semibold text-blue-600">4</span>
+                                        </label>
+                                        <input type="range" id="margin-input" min="1" max="10" step="1" value="4" class="w-full">
+                                    </div>
+                                    <p class="text-[11px] text-gray-500 leading-relaxed">
+                                        <strong>Error correction is automatic:</strong> High (30%) when a logo is present, Medium (15%) otherwise. This gives the best scan reliability for each case without exposing you to a setting that's easy to get wrong.
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                             <span>Generate QR Code</span>
@@ -106,210 +259,713 @@
                     </form>
                 </div>
 
-                <!-- Output Section -->
-                <div class="bg-gray-50 p-8 md:w-1/2 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-gray-200">
+                <!-- Output -->
+                <div class="bg-gray-50 p-6 sm:p-8 lg:w-1/2 flex flex-col items-center justify-center border-t lg:border-t-0 lg:border-l border-gray-200">
                     <div class="text-center mb-6">
                         <h3 class="text-xl font-semibold text-gray-800">Your QR Code</h3>
                         <p class="text-gray-500 text-sm">Scan me with your device</p>
                     </div>
-
-                    <div id="qr-code" class="flex items-center justify-center mb-8 w-48 h-48 md:w-60 md:h-60 bg-white p-4 rounded-lg shadow-md">
-                        <p class="text-gray-400 text-center">Your QR code will appear here</p>
+                    <div id="qr-code" role="img" aria-label="Generated QR code will appear here"
+                         class="flex items-center justify-center mb-8 w-full max-w-[340px] min-h-[220px] bg-white p-4 rounded-lg shadow-md overflow-hidden">
+                        <p class="text-gray-400 text-center text-sm">Your QR code will appear here</p>
                     </div>
-
-                    <div class="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
-                        <button id="download-png" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" disabled>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
+                    <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
+                        <button id="download-png" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             <span>PNG</span>
                         </button>
-                        <button id="download-svg" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" disabled>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
+                        <button id="download-jpeg" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <span>JPEG</span>
+                        </button>
+                        <button id="download-svg" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             <span>SVG</span>
+                        </button>
+                        <button id="copy-image" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <span>Copy</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Features Section -->
-        <div class="mt-16 grid md:grid-cols-3 gap-8">
-            <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Instant Generation</h3>
-                <p class="text-gray-600">Create QR codes in seconds with just one click. No waiting time required.</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
-                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Customizable</h3>
-                <p class="text-gray-600">Personalize your QR code with different colors and sizes to match your brand.</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
-                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">No Data Stored</h3>
-                <p class="text-gray-600">We don't store any of your information. All generation happens in your browser.</p>
-            </div>
-        </div>
-
-        <!-- Footer -->
         <footer class="mt-16 text-center text-gray-500 text-sm">
-            <p>© 2023 QR Code Generator. All QR codes are generated client-side. No server required.</p>
+            <p>© 2024 QR Code Generator. All QR codes are generated client-side. No server required.</p>
         </footer>
     </div>
 
+    <div id="toast" role="status" aria-live="polite"></div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const qrForm = document.getElementById('qrForm');
-            const textInput = document.getElementById('text-input');
-            const fgColor = document.getElementById('fg-color');
-            const bgColor = document.getElementById('bg-color');
-            const fgPreview = document.getElementById('fg-preview');
-            const bgPreview = document.getElementById('bg-preview');
-            const fgHex = document.getElementById('fg-hex');
-            const bgHex = document.getElementById('bg-hex');
-            const sizeInput = document.getElementById('size-input');
-            const qrCodeDiv = document.getElementById('qr-code');
-            const downloadPngBtn = document.getElementById('download-png');
-            const downloadSvgBtn = document.getElementById('download-svg');
-            
-            let currentQR = null;
-            
-            // Update color previews and hex values
-            fgColor.addEventListener('input', function() {
-                fgPreview.style.backgroundColor = this.value;
-                fgHex.value = this.value.toUpperCase();
+    (function () {
+        'use strict';
+
+        const state = {
+            design: 'square',
+            frame: 'none',
+            currentCanvas: null,
+            generationId: 0,
+            logoImage: null,
+            logoName: ''
+        };
+
+        const $ = (id) => document.getElementById(id);
+        const qrForm = $('qrForm');
+        const textInput = $('text-input');
+        const fgColor = $('fg-color');
+        const bgColor = $('bg-color');
+        const fgPreview = $('fg-preview');
+        const bgPreview = $('bg-preview');
+        const fgHex = $('fg-hex');
+        const bgHex = $('bg-hex');
+        const sizeInput = $('size-input');
+        const sizeValue = $('size-value');
+        const marginInput = $('margin-input');
+        const marginValue = $('margin-value');
+        const qrCodeDiv = $('qr-code');
+        const downloadPngBtn = $('download-png');
+        const downloadJpegBtn = $('download-jpeg');
+        const downloadSvgBtn = $('download-svg');
+        const copyImageBtn = $('copy-image');
+        const presetContainer = $('preset-themes');
+        const designContainer = $('design-options');
+        const frameContainer = $('frame-options');
+        const advancedToggle = $('advanced-toggle');
+        const advancedContent = $('advanced-content');
+        const extrasToggle = $('extras-toggle');
+        const extrasContent = $('extras-content');
+        const toastEl = $('toast');
+
+        const logoDropzone = $('logo-dropzone');
+        const logoInput = $('logo-input');
+        const logoEmpty = $('logo-empty');
+        const logoPreviewBox = $('logo-preview');
+        const logoImg = $('logo-img');
+        const logoNameEl = $('logo-name');
+        const logoSizeLabel = $('logo-size-label');
+        const logoRemoveBtn = $('logo-remove');
+        const logoSizeInput = $('logo-size-input');
+        const logoSizeValue = $('logo-size-value');
+        const logoBgCheckbox = $('logo-bg');
+
+        const titleInput = $('title-input');
+        const descInput = $('desc-input');
+
+        const toast = (msg) => {
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => toastEl.classList.remove('show'), 2200);
+        };
+
+        const normalizeHex = (v) => {
+            v = (v || '').trim();
+            if (/^#[0-9a-f]{3}$/i.test(v)) return '#' + v.slice(1).split('').map(c => c + c).join('').toLowerCase();
+            if (/^[0-9a-f]{6}$/i.test(v)) return '#' + v.toLowerCase();
+            if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase();
+            return null;
+        };
+
+        const debounce = (fn, ms = 400) => {
+            let t;
+            return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); };
+        };
+
+        const formatBytes = (b) => {
+            if (b < 1024) return b + ' B';
+            if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+            return (b / (1024 * 1024)).toFixed(2) + ' MB';
+        };
+
+        // ---------- Themes / Designs / Frames ----------
+        const PRESETS = [
+            { name: 'Classic', fg: '#000000', bg: '#ffffff' },
+            { name: 'Ocean', fg: '#0f4c81', bg: '#e6f2ff' },
+            { name: 'Forest', fg: '#14532d', bg: '#dcfce7' },
+            { name: 'Sunset', fg: '#7c2d12', bg: '#fed7aa' },
+            { name: 'Berry', fg: '#6b21a8', bg: '#f3e8ff' },
+            { name: 'Mono', fg: '#1f2937', bg: '#f3f4f6' },
+            { name: 'Crimson', fg: '#991b1b', bg: '#fee2e2' },
+            { name: 'Midnight', fg: '#e0e7ff', bg: '#1e1b4b' }
+        ];
+        PRESETS.forEach(p => {
+            const btn = document.createElement('button');
+            btn.type = 'button'; btn.className = 'preset-swatch'; btn.title = p.name;
+            btn.setAttribute('aria-label', 'Apply theme ' + p.name);
+            btn.style.background = `linear-gradient(135deg, ${p.fg} 50%, ${p.bg} 50%)`;
+            btn.addEventListener('click', () => { setFgColor(p.fg); setBgColor(p.bg); generate(true); });
+            presetContainer.appendChild(btn);
+        });
+
+        const DESIGNS = [
+            { id: 'square', label: 'Square', svg: '<svg viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="4" width="10" height="10" rx="1"/><rect x="18" y="4" width="10" height="10" rx="1"/><rect x="4" y="18" width="10" height="10" rx="1"/><rect x="20" y="20" width="6" height="6"/></svg>' },
+            { id: 'rounded', label: 'Rounded', svg: '<svg viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="4" width="10" height="10" rx="3"/><rect x="18" y="4" width="10" height="10" rx="3"/><rect x="4" y="18" width="10" height="10" rx="3"/><rect x="20" y="20" width="6" height="6" rx="2"/></svg>' },
+            { id: 'dots', label: 'Dots', svg: '<svg viewBox="0 0 32 32" fill="currentColor"><circle cx="9" cy="9" r="5"/><circle cx="23" cy="9" r="5"/><circle cx="9" cy="23" r="5"/><circle cx="23" cy="23" r="3"/></svg>' },
+            { id: 'smooth', label: 'Smooth', svg: '<svg viewBox="0 0 32 32" fill="currentColor"><path d="M4 9a5 5 0 015-5h0a5 5 0 015 5v0a5 5 0 01-5 5h0a5 5 0 01-5-5z"/><circle cx="23" cy="9" r="5"/><circle cx="9" cy="23" r="5"/><circle cx="23" cy="23" r="3"/></svg>' }
+        ];
+        DESIGNS.forEach(d => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'design-option' + (d.id === state.design ? ' active' : '');
+            btn.dataset.design = d.id;
+            btn.innerHTML = `<span style="color: currentColor">${d.svg}</span><span>${d.label}</span>`;
+            btn.style.color = '#374151';
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.design-option').forEach(x => x.classList.remove('active'));
+                btn.classList.add('active');
+                state.design = d.id;
+                generate(true);
             });
-            
-            bgColor.addEventListener('input', function() {
-                bgPreview.style.backgroundColor = this.value;
-                bgHex.value = this.value.toUpperCase();
+            designContainer.appendChild(btn);
+        });
+
+        const FRAMES = [
+            { id: 'none', label: 'None' },
+            { id: 'simple', label: 'Simple' },
+            { id: 'rounded', label: 'Rounded' },
+            { id: 'label', label: 'Label' },
+            { id: 'banner', label: 'Banner' },
+            { id: 'speech', label: 'Speech' },
+            { id: 'shadow', label: 'Shadow' },
+            { id: 'double', label: 'Double' }
+        ];
+        FRAMES.forEach(f => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'frame-option' + (f.id === state.frame ? ' active' : '');
+            btn.dataset.frame = f.id;
+            btn.innerHTML = `<div class="frame-thumb">${frameThumb(f.id)}</div><span class="frame-label">${f.label}</span>`;
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.frame-option').forEach(x => x.classList.remove('active'));
+                btn.classList.add('active');
+                state.frame = f.id;
+                generate(true);
             });
-            
-            // Allow manual hex input
-            fgHex.addEventListener('input', function() {
-                if (/^#[0-9A-F]{6}$/i.test(this.value)) {
-                    fgColor.value = this.value;
-                    fgPreview.style.backgroundColor = this.value;
-                }
-            });
-            
-            bgHex.addEventListener('input', function() {
-                if (/^#[0-9A-F]{6}$/i.test(this.value)) {
-                    bgColor.value = this.value;
-                    bgPreview.style.backgroundColor = this.value;
-                }
-            });
-            
-            // Handle form submission
-            qrForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const text = textInput.value.trim();
-                if (!text) return;
-                
-                const options = {
-                    color: {
-                        dark: fgColor.value,
-                        light: bgColor.value
-                    },
-                    width: parseInt(sizeInput.value)
+            frameContainer.appendChild(btn);
+        });
+
+        function frameThumb(id) {
+            const stroke = '#94a3b8', fill = '#e2e8f0';
+            switch (id) {
+                case 'none': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="12" y="12" width="16" height="16" fill="${fill}"/></svg>`;
+                case 'simple': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="3" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="13" y="13" width="14" height="14" fill="${fill}"/></svg>`;
+                case 'rounded': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="9" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="13" y="13" width="14" height="14" rx="4" fill="${fill}"/></svg>`;
+                case 'label': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="24" rx="3" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="12" y="33" width="16" height="5" rx="2" fill="${stroke}"/><rect x="13" y="12" width="14" height="12" fill="${fill}"/></svg>`;
+                case 'banner': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="6" y="10" width="28" height="24" rx="2" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="6" y="3" width="28" height="7" fill="${stroke}"/><rect x="13" y="16" width="14" height="12" fill="${fill}"/></svg>`;
+                case 'speech': return `<svg width="40" height="40" viewBox="0 0 40 40"><path d="M8 8h24a3 3 0 013 3v14a3 3 0 01-3 3H20l-6 5v-5H8a3 3 0 01-3-3V11a3 3 0 013-3z" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="13" y="13" width="14" height="10" fill="${fill}"/></svg>`;
+                case 'shadow': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="9" y="9" width="26" height="26" rx="3" fill="${stroke}" opacity="0.4"/><rect x="6" y="6" width="26" height="26" rx="3" fill="#fff" stroke="${stroke}" stroke-width="2"/><rect x="12" y="12" width="14" height="14" fill="${fill}"/></svg>`;
+                case 'double': return `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="3" fill="none" stroke="${stroke}" stroke-width="2"/><rect x="8" y="8" width="24" height="24" rx="2" fill="none" stroke="${stroke}" stroke-width="1.5"/><rect x="13" y="13" width="14" height="14" fill="${fill}"/></svg>`;
+                default: return '';
+            }
+        }
+
+        advancedToggle.addEventListener('click', () => {
+            advancedToggle.classList.toggle('open');
+            advancedContent.classList.toggle('open');
+        });
+        extrasToggle.addEventListener('click', () => {
+            extrasToggle.classList.toggle('open');
+            extrasContent.classList.toggle('open');
+        });
+
+        // ---------- Color ----------
+        function setFgColor(v) {
+            const hex = normalizeHex(v); if (!hex) return;
+            fgColor.value = hex; fgPreview.style.backgroundColor = hex; fgHex.value = hex.toUpperCase();
+        }
+        function setBgColor(v) {
+            const hex = normalizeHex(v); if (!hex) return;
+            bgColor.value = hex; bgPreview.style.backgroundColor = hex; bgHex.value = hex.toUpperCase();
+        }
+        fgPreview.addEventListener('click', () => fgColor.click());
+        bgPreview.addEventListener('click', () => bgColor.click());
+        fgColor.addEventListener('input', () => { setFgColor(fgColor.value); generate(true); });
+        bgColor.addEventListener('input', () => { setBgColor(bgColor.value); generate(true); });
+        fgHex.addEventListener('input', () => {
+            const hex = normalizeHex(fgHex.value);
+            if (hex) { fgColor.value = hex; fgPreview.style.backgroundColor = hex; generate(true); }
+        });
+        bgHex.addEventListener('input', () => {
+            const hex = normalizeHex(bgHex.value);
+            if (hex) { bgColor.value = hex; bgPreview.style.backgroundColor = hex; generate(true); }
+        });
+
+        sizeInput.addEventListener('input', () => { sizeValue.textContent = sizeInput.value; generate(true); });
+        marginInput.addEventListener('input', () => { marginValue.textContent = marginInput.value; generate(true); });
+        logoSizeInput.addEventListener('input', () => { logoSizeValue.textContent = logoSizeInput.value; generate(true); });
+        logoBgCheckbox.addEventListener('change', () => generate(true));
+
+        titleInput.addEventListener('input', debounce(() => generate(true), 350));
+        descInput.addEventListener('input', debounce(() => generate(true), 350));
+
+        // ---------- Logo ----------
+        logoDropzone.addEventListener('click', () => logoInput.click());
+        logoDropzone.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); logoInput.click(); }
+        });
+        ['dragenter', 'dragover'].forEach(evt => logoDropzone.addEventListener(evt, (e) => {
+            e.preventDefault(); logoDropzone.classList.add('dragover');
+        }));
+        ['dragleave', 'drop'].forEach(evt => logoDropzone.addEventListener(evt, (e) => {
+            e.preventDefault(); logoDropzone.classList.remove('dragover');
+        }));
+        logoDropzone.addEventListener('drop', (e) => {
+            const file = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (file) handleLogoFile(file);
+        });
+        logoInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) handleLogoFile(file);
+        });
+        logoRemoveBtn.addEventListener('click', () => {
+            state.logoImage = null;
+            state.logoName = '';
+            logoInput.value = '';
+            logoEmpty.classList.remove('hidden');
+            logoPreviewBox.classList.add('hidden');
+            generate(true);
+        });
+
+        function handleLogoFile(file) {
+            if (!file.type.startsWith('image/')) { toast('Please choose an image file'); return; }
+            if (file.size > 4 * 1024 * 1024) { toast('Image too large (max 4 MB)'); return; }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    state.logoImage = img;
+                    state.logoName = file.name;
+                    logoImg.src = e.target.result;
+                    logoNameEl.textContent = file.name;
+                    logoSizeLabel.textContent = formatBytes(file.size);
+                    logoEmpty.classList.add('hidden');
+                    logoPreviewBox.classList.remove('hidden');
+                    generate(true);
+                    toast('Logo added — error correction auto-set to High');
                 };
-                
-                // Clear previous QR
+                img.onerror = () => toast('Could not load image');
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        const livePreview = debounce(() => { if (textInput.value.trim()) generate(false); }, 450);
+        textInput.addEventListener('input', livePreview);
+
+        qrForm.addEventListener('submit', (e) => { e.preventDefault(); generate(false); });
+
+        // ---------- QR render ----------
+        // Builds a canvas of the QR *module grid* directly from the library's
+        // module bitmask (no pixel-reading — this is what fixes the logo bug).
+        function buildModuleCanvas(text, ecc) {
+            return new Promise((resolve, reject) => {
+                try {
+                    // QRCode.create gives { modules: { size, data } }
+                    const qr = QRCode.create(text, { errorCorrectionLevel: ecc });
+                    const size = qr.modules.size;
+                    const data = qr.modules.data;
+                    resolve({ size, data });
+                } catch (err) { reject(err); }
+            });
+        }
+
+        async function renderStyledQR(text, options) {
+            const size = options.width;
+            const marginModules = options.margin ?? 4;
+            const dark = options.color.dark;
+            const light = options.color.light;
+
+            // Auto ECC: High when logo, Medium otherwise
+            const ecc = state.logoImage ? 'H' : 'M';
+
+            const { size: moduleCount, data: moduleData } = await buildModuleCanvas(text, ecc);
+
+            // Total modules including quiet zone (both sides)
+            const totalModules = moduleCount + marginModules * 2;
+            // Integer pixel size per module to avoid any sub-pixel rendering artifacts
+            const modulePx = Math.max(1, Math.floor(size / totalModules));
+            const actualSize = modulePx * totalModules; // may be slightly <= size
+
+            const canvas = document.createElement('canvas');
+            canvas.width = actualSize;
+            canvas.height = actualSize;
+            const ctx = canvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = light;
+            ctx.fillRect(0, 0, actualSize, actualSize);
+
+            // Draw modules
+            ctx.fillStyle = dark;
+            const offset = marginModules * modulePx;
+            for (let my = 0; my < moduleCount; my++) {
+                for (let mx = 0; mx < moduleCount; mx++) {
+                    if (!moduleData[my * moduleCount + mx]) continue;
+                    const x = offset + mx * modulePx;
+                    const y = offset + my * modulePx;
+                    drawModule(ctx, x, y, modulePx, state.design);
+                }
+            }
+
+            // Logo overlay (in-place, on the module canvas)
+            if (state.logoImage) {
+                drawLogo(canvas, moduleCount, modulePx, offset, light);
+            }
+
+            // Frame + title/desc
+            return drawFrame(canvas, state.frame, options);
+        }
+
+        function drawModule(ctx, x, y, s, style) {
+            switch (style) {
+                case 'rounded': {
+                    roundRect(ctx, x, y, s, s, s * 0.28); ctx.fill(); break;
+                }
+                case 'dots': {
+                    ctx.beginPath();
+                    ctx.arc(x + s / 2, y + s / 2, s / 2, 0, Math.PI * 2);
+                    ctx.fill(); break;
+                }
+                case 'smooth': {
+                    roundRect(ctx, x, y, s, s, s * 0.4); ctx.fill(); break;
+                }
+                default:
+                    ctx.fillRect(x, y, s, s);
+            }
+        }
+
+        function roundRect(ctx, x, y, w, h, r) {
+            if (r > w / 2) r = w / 2;
+            if (r > h / 2) r = h / 2;
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        // Draw logo centered on the QR canvas.
+        // - Uses module-aligned sizing so we never cover a half-module.
+        // - Adds a light-colored pad (larger if checkbox on) for contrast.
+        // - Keeps logo box ≤ 25% of the QR (safe with ECC H).
+        function drawLogo(canvas, moduleCount, modulePx, offset, lightColor) {
+            const img = state.logoImage;
+            const pct = parseInt(logoSizeInput.value, 10) / 100;
+            const qrPixelSize = moduleCount * modulePx;
+
+            // Logo target size in pixels, snapped to whole modules for clean edges
+            let logoModules = Math.round(moduleCount * pct);
+            // Keep it odd so the logo is centered on a module (QR center is a module)
+            if (logoModules % 2 === 0) logoModules += 1;
+            const logoSizePx = logoModules * modulePx;
+
+            // Padding: if checkbox is on, add 1 module around the logo
+            const padModules = logoBgCheckbox.checked ? 1 : 0;
+            const bgSizePx = logoSizePx + padModules * 2 * modulePx;
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            const ctx = canvas.getContext('2d');
+
+            // Background pad (rounded square)
+            ctx.fillStyle = lightColor;
+            roundRect(ctx, cx - bgSizePx / 2, cy - bgSizePx / 2, bgSizePx, bgSizePx, Math.round(bgSizePx * 0.18));
+            ctx.fill();
+
+            // Aspect-fit the image inside logoSizePx
+            const scale = Math.min(logoSizePx / img.width, logoSizePx / img.height);
+            const dw = img.width * scale;
+            const dh = img.height * scale;
+
+            ctx.save();
+            roundRect(ctx, cx - dw / 2, cy - dh / 2, dw, dh, Math.round(Math.min(dw, dh) * 0.10));
+            ctx.clip();
+            ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
+            ctx.restore();
+        }
+
+        function drawFrame(qrCanvas, frameId, options) {
+            const title = (titleInput.value || '').trim();
+            const desc = (descInput.value || '').trim();
+            const hasText = title || desc;
+
+            if ((!frameId || frameId === 'none') && !hasText) return qrCanvas;
+
+            const padding = Math.round(qrCanvas.width * 0.10);
+            const borderW = Math.max(4, Math.round(qrCanvas.width * 0.012));
+            const fg = options.color.dark;
+            const bg = options.color.light;
+
+            const fontSizeTitle = Math.max(14, Math.round(qrCanvas.width * 0.06));
+            const fontSizeDesc = Math.max(11, Math.round(qrCanvas.width * 0.042));
+            const lineGap = Math.round(qrCanvas.width * 0.015);
+
+            // Estimate desc lines for layout
+            const approxCharW = fontSizeDesc * 0.55;
+            const maxDescWidth = qrCanvas.width;
+            const charsPerLine = Math.max(10, Math.floor(maxDescWidth / approxCharW));
+            const descLines = desc ? Math.ceil(desc.length / charsPerLine) : 0;
+
+            const titleH = title ? fontSizeTitle + lineGap * 2 : 0;
+            const descH = desc ? descLines * (fontSizeDesc + 2) + lineGap : 0;
+            const textBlockH = (titleH || descH) ? lineGap + titleH + descH + lineGap : 0;
+            const bottomExtra = textBlockH;
+
+            const out = document.createElement('canvas');
+            out.width = qrCanvas.width + padding * 2;
+            out.height = qrCanvas.height + padding * 2 + bottomExtra;
+            const ctx = out.getContext('2d');
+
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, out.width, out.height);
+            ctx.strokeStyle = fg;
+            ctx.fillStyle = bg;
+            ctx.lineWidth = borderW;
+
+            const bx = padding / 2;
+            const by = padding / 2;
+            const bw = out.width - padding;
+            const bh = out.height - padding - bottomExtra;
+
+            switch (frameId) {
+                case 'simple':
+                    ctx.strokeRect(bx, by, bw, bh); break;
+                case 'rounded':
+                    roundRect(ctx, bx, by, bw, bh, Math.min(bw, bh) * 0.08); ctx.stroke(); break;
+                case 'label':
+                case 'banner':
+                case 'speech':
+                case 'double':
+                    roundRect(ctx, bx, by, bw, bh, Math.min(bw, bh) * 0.06); ctx.stroke();
+                    if (frameId === 'double') {
+                        const inset = Math.max(6, padding * 0.3);
+                        ctx.save();
+                        ctx.lineWidth = Math.max(2, borderW * 0.5);
+                        roundRect(ctx, bx + inset, by + inset, bw - inset * 2, bh - inset * 2, Math.min(bw, bh) * 0.03);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                    break;
+                case 'shadow': {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+                    ctx.shadowBlur = Math.round(out.width * 0.03);
+                    ctx.shadowOffsetY = Math.round(out.width * 0.012);
+                    ctx.fillStyle = bg;
+                    roundRect(ctx, bx, by, bw, bh, Math.min(bw, bh) * 0.06);
+                    ctx.fill();
+                    ctx.restore();
+                    roundRect(ctx, bx, by, bw, bh, Math.min(bw, bh) * 0.06);
+                    ctx.stroke();
+                    break;
+                }
+                default:
+                    if (hasText) {
+                        ctx.beginPath();
+                        ctx.moveTo(padding, qrCanvas.height + padding * 0.55);
+                        ctx.lineTo(out.width - padding, qrCanvas.height + padding * 0.55);
+                        ctx.strokeStyle = fg;
+                        ctx.globalAlpha = 0.15;
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                    }
+            }
+
+            ctx.drawImage(qrCanvas, padding, padding);
+
+            if (hasText) {
+                const textTop = qrCanvas.height + padding + lineGap;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                if (title) {
+                    ctx.fillStyle = fg;
+                    ctx.font = `700 ${fontSizeTitle}px Poppins, sans-serif`;
+                    ctx.fillText(title, out.width / 2, textTop, out.width - padding * 2);
+                }
+                if (desc) {
+                    ctx.fillStyle = fg;
+                    ctx.globalAlpha = 0.75;
+                    ctx.font = `400 ${fontSizeDesc}px Poppins, sans-serif`;
+                    wrapText(ctx, desc, out.width / 2, textTop + titleH, out.width - padding * 2, fontSizeDesc + 2);
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            return out;
+        }
+
+        function wrapText(ctx, text, centerX, startY, maxWidth, lineHeight) {
+            const words = text.split(/\s+/);
+            let line = '';
+            let y = startY;
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line ? line + ' ' + words[n] : words[n];
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && line) {
+                    ctx.fillText(line, centerX, y);
+                    line = words[n];
+                    y += lineHeight;
+                } else { line = testLine; }
+            }
+            if (line) ctx.fillText(line, centerX, y);
+        }
+
+        // ---------- Generate ----------
+        async function generate(silent) {
+            const text = textInput.value.trim();
+            if (!text) { if (!silent) toast('Please enter some text or a URL'); return; }
+            const myId = ++state.generationId;
+
+            const options = {
+                color: { dark: fgColor.value, light: bgColor.value },
+                width: parseInt(sizeInput.value, 10),
+                margin: parseInt(marginInput.value, 10)
+            };
+
+            if (!silent) qrCodeDiv.innerHTML = loaderHTML();
+
+            try {
+                const styled = await renderStyledQR(text, options);
+                if (myId !== state.generationId) return;
+
                 qrCodeDiv.innerHTML = '';
-                
-                // Add loading animation
-                const loader = document.createElement('div');
-                loader.className = 'animate-pulse flex items-center justify-center';
-                loader.innerHTML = `
+                styled.classList.add('mx-auto');
+                qrCodeDiv.appendChild(styled);
+                qrCodeDiv.setAttribute('aria-label', 'QR code for ' + text.slice(0, 60));
+
+                state.currentCanvas = styled;
+
+                downloadPngBtn.disabled = false;
+                downloadJpegBtn.disabled = false;
+                downloadSvgBtn.disabled = false;
+                copyImageBtn.disabled = false;
+
+                if (!silent) {
+                    [downloadPngBtn, downloadJpegBtn, downloadSvgBtn, copyImageBtn].forEach(b => b.classList.add('pulse'));
+                    setTimeout(() => [downloadPngBtn, downloadJpegBtn, downloadSvgBtn, copyImageBtn].forEach(b => b.classList.remove('pulse')), 1500);
+                }
+            } catch (err) {
+                console.error(err);
+                if (myId !== state.generationId) return;
+                if (!silent) {
+                    qrCodeDiv.innerHTML = '<p class="text-red-500 text-center text-sm">Error generating QR code. Please try again.</p>';
+                    toast('Failed to generate QR code');
+                }
+            }
+        }
+
+        function loaderHTML() {
+            return `
+                <div class="animate-pulse flex items-center justify-center">
                     <div class="flex flex-col items-center">
-                        <svg class="animate-spin h-8 w-8 text-blue-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="animate-spin h-8 w-8 text-blue-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span class="text-gray-500">Generating QR code...</span>
+                        <span class="text-gray-500 text-sm">Generating QR code...</span>
                     </div>
-                `;
-                qrCodeDiv.appendChild(loader);
-                
-                // Generate QR code
-                QRCode.toCanvas(text, options, function(err, canvas) {
-                    qrCodeDiv.innerHTML = '';
-                    if (err) {
-                        qrCodeDiv.innerHTML = '<p class="text-red-500 text-center">Error generating QR code. Please try again.</p>';
-                        console.error(err);
-                        return;
-                    }
-                    
-                    currentQR = { text, options, canvas };
-                    canvas.classList.add('mx-auto');
-                    qrCodeDiv.appendChild(canvas);
-                    
-                    // Enable download buttons
-                    downloadPngBtn.disabled = false;
-                    downloadSvgBtn.disabled = false;
-                    
-                    // Add pulse animation to download buttons
-                    downloadPngBtn.classList.add('pulse');
-                    downloadSvgBtn.classList.add('pulse');
-                    setTimeout(() => {
-                        downloadPngBtn.classList.remove('pulse');
-                        downloadSvgBtn.classList.remove('pulse');
-                    }, 3000);
-                });
-            });
-            
-            // Handle PNG download
-            downloadPngBtn.addEventListener('click', function() {
-                if (!currentQR) return;
-                
-                const canvas = currentQR.canvas;
-                const url = canvas.toDataURL('image/png');
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `qr-code-${Date.now()}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            });
-            
-            // Handle SVG download
-            downloadSvgBtn.addEventListener('click', function() {
-                if (!currentQR) return;
-                
-                QRCode.toString(currentQR.text, currentQR.options, function(err, svg) {
-                    if (err) {
-                        console.error(err);
-                        return;
-                    }
-                    
-                    const blob = new Blob([svg], { type: 'image/svg+xml' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `qr-code-${Date.now()}.svg`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                });
-            });
+                </div>
+            `;
+        }
+
+        // ---------- Downloads ----------
+        downloadPngBtn.addEventListener('click', () => {
+            if (!state.currentCanvas) return;
+            const url = state.currentCanvas.toDataURL('image/png');
+            triggerDownload(url, `qr-code-${Date.now()}.png`);
+            toast('PNG downloaded');
         });
+
+        downloadJpegBtn.addEventListener('click', () => {
+            if (!state.currentCanvas) return;
+            const src = state.currentCanvas;
+            const tmp = document.createElement('canvas');
+            tmp.width = src.width; tmp.height = src.height;
+            const tctx = tmp.getContext('2d');
+            tctx.fillStyle = bgColor.value || '#ffffff';
+            tctx.fillRect(0, 0, tmp.width, tmp.height);
+            tctx.drawImage(src, 0, 0);
+            const url = tmp.toDataURL('image/jpeg', 0.95);
+            triggerDownload(url, `qr-code-${Date.now()}.jpg`);
+            toast('JPEG downloaded');
+        });
+
+        downloadSvgBtn.addEventListener('click', async () => {
+            if (!state.currentCanvas) return;
+            try {
+                const dataUrl = state.currentCanvas.toDataURL('image/png');
+                const w = state.currentCanvas.width, h = state.currentCanvas.height;
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><image href="${dataUrl}" width="${w}" height="${h}"/></svg>`;
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                triggerDownload(url, `qr-code-${Date.now()}.svg`);
+                setTimeout(() => URL.revokeObjectURL(url), 1500);
+                toast('SVG downloaded');
+            } catch (e) { console.error(e); toast('SVG download failed'); }
+        });
+
+        copyImageBtn.addEventListener('click', async () => {
+            if (!state.currentCanvas) return;
+            try {
+                const blob = await new Promise((resolve) => state.currentCanvas.toBlob(resolve, 'image/png'));
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                toast('Copied to clipboard');
+            } catch (err) { console.error(err); toast('Copy failed — try downloading instead'); }
+        });
+
+        function triggerDownload(url, filename) {
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        // ---------- Persistence ----------
+        const STORAGE_KEY = 'qrgen-settings-v3';
+        function saveSettings() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    fg: fgColor.value, bg: bgColor.value,
+                    size: sizeInput.value, margin: marginInput.value,
+                    design: state.design, frame: state.frame,
+                    title: titleInput.value, desc: descInput.value,
+                    logoSize: logoSizeInput.value, logoBg: logoBgCheckbox.checked
+                }));
+            } catch (_) {}
+        }
+        function loadSettings() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const s = JSON.parse(raw);
+                if (s.fg) setFgColor(s.fg);
+                if (s.bg) setBgColor(s.bg);
+                if (s.size) { sizeInput.value = s.size; sizeValue.textContent = s.size; }
+                if (s.margin) { marginInput.value = s.margin; marginValue.textContent = s.margin; }
+                if (s.title) titleInput.value = s.title;
+                if (s.desc) descInput.value = s.desc;
+                if (s.logoSize) { logoSizeInput.value = s.logoSize; logoSizeValue.textContent = s.logoSize; }
+                if (typeof s.logoBg === 'boolean') logoBgCheckbox.checked = s.logoBg;
+                if (s.design && document.querySelector(`.design-option[data-design="${s.design}"]`)) {
+                    document.querySelectorAll('.design-option').forEach(x => x.classList.remove('active'));
+                    document.querySelector(`.design-option[data-design="${s.design}"]`).classList.add('active');
+                    state.design = s.design;
+                }
+                if (s.frame && document.querySelector(`.frame-option[data-frame="${s.frame}"]`)) {
+                    document.querySelectorAll('.frame-option').forEach(x => x.classList.remove('active'));
+                    document.querySelector(`.frame-option[data-frame="${s.frame}"]`).classList.add('active');
+                    state.frame = s.frame;
+                }
+            } catch (_) {}
+        }
+        [fgHex, bgHex, sizeInput, marginInput, titleInput, descInput, logoSizeInput, logoBgCheckbox].forEach(el => {
+            el.addEventListener('change', saveSettings);
+        });
+        document.addEventListener('click', saveSettings);
+
+        loadSettings();
+    })();
     </script>
 </body>
 </html>
